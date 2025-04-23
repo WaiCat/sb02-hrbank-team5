@@ -12,5 +12,6 @@ public interface BackupRepository extends JpaRepository<Backup, Long> {
   //가장 최근에 status한 백업 조회
   Optional<Backup> findTopByStatusOrderByEndedAtDesc(BackupStatus status);
 
+  boolean existsByStatus(BackupStatus status);
 
 }

@@ -5,16 +5,14 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import java.time.Instant;;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
 import lombok.Getter;
 
 @Entity
@@ -34,10 +32,10 @@ public class Backup {
   private String worker;
 
   @Column(name = "started_at", nullable = false)
-  private Instant startedAt;
+  private LocalDateTime startedAt;
 
   @Column(name = "ended_at", nullable = false)
-  private Instant endedAt;
+  private LocalDateTime endedAt;
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
@@ -49,13 +47,13 @@ public class Backup {
 
   public void completeBackup(BinaryContent file) {
     this.status = BackupStatus.COMPLETED;
-    this.endedAt = Instant.now();
+    this.endedAt = LocalDateTime.now();
     this.file = file;
   }
 
   public void failBackup(BinaryContent logFile) {
     this.status = BackupStatus.FAILED;
-    this.endedAt = Instant.now();
+    this.endedAt = LocalDateTime.now();
     this.file = logFile;
   }
 

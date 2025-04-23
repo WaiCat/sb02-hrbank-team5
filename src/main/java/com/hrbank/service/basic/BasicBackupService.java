@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.Comparator;
 import java.util.List;
@@ -51,7 +51,7 @@ public class BasicBackupService implements BackupService {
 
   @Override
   public CursorPageResponseBackupDto searchBackups(
-      String worker, BackupStatus status, Instant from, Instant to,
+      String worker, BackupStatus status, LocalDateTime from, LocalDateTime to,
       Long id, String cursor, Integer size, String sortField, String sortDirection) {
 
     // 필터링
@@ -113,7 +113,7 @@ public class BasicBackupService implements BackupService {
     return backupRepository.findTopByStatusOrderByEndedAtDesc(status)
         .map(backupMapper::toDto)
         .orElseThrow(() ->
-            new IllegalArgumentException("요청한 상태에 해당하는 백업이 존재하지 않습니다.")
+            new RestException(ErrorCode.BACKUP_LATEST_NOT_FOUND)
         );
   }
 
@@ -121,13 +121,19 @@ public class BasicBackupService implements BackupService {
   @Override
   @Transactional
   public BackupDto runBackup(String requesterIp) {
+
+    // 실행중인 백업 유무 확인
+    if (backupRepository.existsByStatus(BackupStatus.IN_PROGRESS)) {
+      throw new RestException(ErrorCode.BACKUP_ALREADY_IN_PROGRESS);
+    }
+
     if (!isBackupRequired()) {
       // 백업 필요 없으면 SKIPPED 처리
       Backup skipped = Backup.builder()
           .worker(requesterIp)
           .status(BackupStatus.SKIPPED)
-          .startedAt(Instant.now())
-          .endedAt(Instant.now())
+          .startedAt(LocalDateTime.now())
+          .endedAt(LocalDateTime.now())
           .build();
       backupRepository.save(skipped);
       return backupMapper.toDto(skipped);
@@ -162,18 +168,17 @@ public class BasicBackupService implements BackupService {
       return true;
     }
 
-    Instant lastBackupTime = lastCompletedBackup.get().getEndedAt();
+    LocalDateTime lastBackupTime = lastCompletedBackup.get().getEndedAt();
 
     // 특정 시간 이후 직원 업데이트 내역 확인
-    // 추후 구현 필요
-    return employeeChangeLogRepository.existsByUpdatedAtAfter(lastBackupTime);
+    return employeeChangeLogRepository.existsByAtAfter(lastBackupTime);
   }
 
   private BackupDto createInProgressBackup(String requesterIp) {
     Backup backup = Backup.builder()
         .worker(requesterIp)
         .status(BackupStatus.IN_PROGRESS)
-        .startedAt(Instant.now())
+        .startedAt(LocalDateTime.now())
         .build();
 
     Backup saved = backupRepository.save(backup);
@@ -182,20 +187,20 @@ public class BasicBackupService implements BackupService {
 
   private void markBackupCompleted(Long backupId, Long fileId) {
     Backup backup = backupRepository.findById(backupId)
-        .orElseThrow(() -> new EntityNotFoundException("백업을 찾을 수 없습니다."));
+        .orElseThrow(() -> new RestException(ErrorCode.BACKUP_NOT_FOUND));
 
     BinaryContent file = binaryContentRepository.findById(fileId)
-        .orElseThrow(() -> new EntityNotFoundException("파일을 찾을 수 없습니다."));
+        .orElseThrow(() -> new RestException(ErrorCode.BACKUP_CSV_NOT_FOUND));
 
     backup.completeBackup(file);
   }
 
   private void markBackupFailed(Long backupId, Long logFileId) {
     Backup backup = backupRepository.findById(backupId)
-        .orElseThrow(() -> new EntityNotFoundException("백업을 찾을 수 없습니다."));
+        .orElseThrow(() -> new RestException(ErrorCode.BACKUP_NOT_FOUND));
 
     BinaryContent logFile = binaryContentRepository.findById(logFileId)
-        .orElseThrow(() -> new EntityNotFoundException("로그 파일을 찾을 수 없습니다."));
+        .orElseThrow(() -> new RestException(ErrorCode.BACKUP_ERROR_LOG_NOT_FOUND));
 
     backup.failBackup(logFile);
   }
