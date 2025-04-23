@@ -5,7 +5,6 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 public class RestException extends RuntimeException {
-
   private final ErrorCode errorCode;
 
   public RestException(ErrorCode errorCode) {
@@ -13,3 +12,4 @@ public class RestException extends RuntimeException {
     this.errorCode = errorCode;
   }
 }
+

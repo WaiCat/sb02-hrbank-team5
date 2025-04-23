@@ -5,6 +5,7 @@ import com.hrbank.dto.department.DepartmentCreateRequest;
 import com.hrbank.dto.department.DepartmentDto;
 import com.hrbank.dto.department.DepartmentUpdateRequest;
 import com.hrbank.entity.Department;
+import com.hrbank.exception.RestException;
 import com.hrbank.mapper.DepartmentMapper;
 import com.hrbank.repository.DepartmentRepository;
 import com.hrbank.service.DepartmentService;
@@ -28,7 +29,7 @@ public class BasicDepartmentService implements DepartmentService {
     public DepartmentDto createDepartment(DepartmentCreateRequest request) {
         // 이름 중복 검사
         if (departmentRepository.findByName(request.name()).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "부서 이름이 이미 존재합니다: " + request.name());
+            throw new RestException(HttpStatus.CONFLICT, "부서 이름이 이미 존재합니다: " + request.name());
         }
 
         // 부서 생성
@@ -46,7 +47,7 @@ public class BasicDepartmentService implements DepartmentService {
     @Transactional(readOnly = true)
     public DepartmentDto getDepartmentById(Long id) {
         Department department = departmentRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "존재하지 않는 부서입니다: " + id));
+                .orElseThrow(() -> new RestException(HttpStatus.NOT_FOUND, "존재하지 않는 부서입니다: " + id));
 
         return departmentMapper.toDto(department);
     }
@@ -55,12 +56,12 @@ public class BasicDepartmentService implements DepartmentService {
     @Transactional
     public DepartmentDto updateDepartment(Long id, DepartmentUpdateRequest request) {
         Department department = departmentRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "존재하지 않는 부서입니다: " + id));
+                .orElseThrow(() -> new RestException(HttpStatus.NOT_FOUND, "존재하지 않는 부서입니다: " + id));
 
         // 이름 변경시 중복 검사
         if (request.name() != null && !request.name().equals(department.getName())) {
             if (departmentRepository.findByNameExcludingId(request.name(), id).isPresent()) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "부서 이름이 이미 존재합니다: " + request.name());
+                throw new RestException(HttpStatus.CONFLICT, "부서 이름이 이미 존재합니다: " + request.name());
             }
         }
 
@@ -75,11 +76,11 @@ public class BasicDepartmentService implements DepartmentService {
     @Transactional
     public void deleteDepartment(Long id) {
         Department department = departmentRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "존재하지 않는 부서입니다: " + id));
+                .orElseThrow(() -> new RestException(HttpStatus.NOT_FOUND, "존재하지 않는 부서입니다: " + id));
 
         // 소속된 직원이 있는지 확인
         if (departmentRepository.hasEmployees(id)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "소속된 직원이 있는 부서는 삭제할 수 없습니다");
+            throw new RestException(HttpStatus.BAD_REQUEST, "소속된 직원이 있는 부서는 삭제할 수 없습니다");
         }
 
         departmentRepository.delete(department);
