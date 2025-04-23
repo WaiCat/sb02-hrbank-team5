@@ -1,6 +1,7 @@
 package com.hrbank.service.basic;
 
 import com.hrbank.dto.binarycontent.BinaryContentCreateRequest;
+import com.hrbank.dto.binarycontent.BinaryContentDto;
 import com.hrbank.dto.employee.CursorPageResponseEmployeeDto;
 import com.hrbank.dto.employee.EmployeeCreateRequest;
 import com.hrbank.dto.employee.EmployeeDto;
@@ -12,10 +13,12 @@ import com.hrbank.entity.Employee;
 import com.hrbank.enums.EmployeeStatus;
 import com.hrbank.exception.ErrorCode;
 import com.hrbank.exception.RestException;
+import com.hrbank.mapper.BinaryContentMapper;
 import com.hrbank.mapper.EmployeeMapper;
 import com.hrbank.repository.DepartmentRepository;
 import com.hrbank.repository.EmployeeRepository;
 import com.hrbank.service.BinaryContentService;
+import com.hrbank.service.EmployeeChangeLogService;
 import com.hrbank.service.EmployeeService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +32,9 @@ public class BasicEmployeeService implements EmployeeService {
   private final DepartmentRepository departmentRepository;
   private final BinaryContentService binaryContentService;
   private final EmployeeMapper employeeMapper;
+  private final EmployeeChangeLogService changeLogService;
+  private final BinaryContentMapper binaryContentMapper;
+
 
   @Override
   public CursorPageResponseEmployeeDto searchEmployees(EmployeeSearchCondition condition) {
@@ -53,12 +59,12 @@ public class BasicEmployeeService implements EmployeeService {
 
     BinaryContent profileImage = null;
     if (request.profileImageId() != null) {
-        profileImage = binaryContentService.findById(request.profileImageId())
-            .orElseThrow(() -> new RestException(ErrorCode.PROFILE_IMAGE_NOT_FOUND));
+        BinaryContentDto profileImageDto = binaryContentService.findById(request.profileImageId());
+        profileImage = binaryContentMapper.toEntity(profileImageDto);
 
         // 기존 프로필 이미지 삭제
         if (employee.getProfileImage() != null) {
-            binaryContentService.delete(employee.getProfileImage());
+            binaryContentService.delete(employee.getProfileImage().getId());
         }
     }
 
@@ -123,5 +129,21 @@ public class BasicEmployeeService implements EmployeeService {
   // 사원번호 생성 함수
   private String generateEmployeeNumber() {
     return "E" + System.currentTimeMillis();
+  }
+
+
+  @Override
+  @Transactional
+  public EmployeeDto delete(Long id) {
+    Employee employee = employeeRepository.findById(id)
+        .orElseThrow(() -> new RestException(ErrorCode.EMPLOYEE_NOT_FOUND));
+
+    if (employee.getProfileImage() != null) {
+      binaryContentService.delete(employee.getProfileImage().getId());
+    }
+
+    employeeRepository.delete(employee);
+
+    return employeeMapper.toDto(employee);
   }
 }

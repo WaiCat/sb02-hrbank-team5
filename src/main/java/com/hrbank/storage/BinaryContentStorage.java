@@ -126,4 +126,9 @@ public class BinaryContentStorage {
         .body(resource);
   }
 
+  // 프로필 이미지 삭제
+  public void deleteProfileImage(Long id) throws IOException {
+    Path target = root.resolve(id.toString());
+    Files.deleteIfExists(target);
+  }
 }

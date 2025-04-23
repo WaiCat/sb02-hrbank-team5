@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -45,5 +46,11 @@ public class EmployeeController {
   @PostMapping
   public ResponseEntity<EmployeeDto> createEmployee(@RequestBody @Valid EmployeeCreateRequest request) {
     return ResponseEntity.ok(employeeService.create(request));
+  }
+
+  @DeleteMapping("/{id}")
+  public ResponseEntity<EmployeeDto> deleteEmployee(@PathVariable Long id) {
+    EmployeeDto deletedEmployee = employeeService.delete(id);
+    return ResponseEntity.ok(deletedEmployee);
   }
 }

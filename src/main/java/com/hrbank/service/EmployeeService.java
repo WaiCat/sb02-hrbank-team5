@@ -12,4 +12,6 @@ public interface EmployeeService {
   EmployeeDto update(Long id, EmployeeUpdateRequest request, String ip);
   
   EmployeeDto create(EmployeeCreateRequest request);
+
+  EmployeeDto delete(Long id);
 }
