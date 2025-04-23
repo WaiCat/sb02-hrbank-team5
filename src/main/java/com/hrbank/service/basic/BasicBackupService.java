@@ -7,13 +7,19 @@ import com.hrbank.dto.backup.CursorPageResponseBackupDto;
 import com.hrbank.entity.Backup;
 import com.hrbank.entity.BinaryContent;
 import com.hrbank.enums.BackupStatus;
+import com.hrbank.generator.EmployeeCsvGenerator;
 import com.hrbank.mapper.BackupMapper;
 import com.hrbank.repository.BackupRepository;
 import com.hrbank.repository.BinaryContentRepository;
 import com.hrbank.repository.EmployeeChangeLogRepository;
 import com.hrbank.repository.EmployeeRepository;
 import com.hrbank.service.BackupService;
+import com.hrbank.storage.BinaryContentStorage;
 import jakarta.persistence.EntityNotFoundException;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Base64;
@@ -38,6 +44,8 @@ public class BasicBackupService implements BackupService {
   private final EmployeeRepository employeeRepository;
   private final EmployeeChangeLogRepository employeeChangeLogRepository;
   private final BinaryContentRepository binaryContentRepository;
+  private final BinaryContentStorage binaryContentStorage;
+  private final EmployeeCsvGenerator employeeCsvGenerator;
 
   @Override
   public CursorPageResponseBackupDto searchBackups(
@@ -128,7 +136,7 @@ public class BasicBackupService implements BackupService {
 
     try {
       // 백업 파일 생성
-      Long fileId = generateBackupFile();
+      Long fileId = generateBackupFile(inProgress);
 
       // 성공 처리
       markBackupCompleted(inProgress.id(), fileId);
@@ -136,7 +144,7 @@ public class BasicBackupService implements BackupService {
 
     } catch (Exception e) {
       // 로그 파일 생성
-      Long logFileId = saveErrorLogFile(e);
+      Long logFileId = saveErrorLogFile(inProgress.id(), e);
 
       // 실패 처리
       markBackupFailed(inProgress.id(), logFileId);
@@ -210,6 +218,59 @@ public class BasicBackupService implements BackupService {
     String json = "{\"id\":" + id + "}";
     return Base64.getEncoder().encodeToString(json.getBytes(StandardCharsets.UTF_8));
   }
+
+  private Long generateBackupFile(BackupDto dto) {
+    File tempCsv = null;
+    BinaryContent binaryContent = new BinaryContent();
+    binaryContent = binaryContentRepository.save(binaryContent);
+    Long contentId = binaryContent.getId();
+
+    try{
+      tempCsv = employeeCsvGenerator.generate(dto);
+      binaryContentStorage.putCsvFile(contentId, tempCsv);
+
+      binaryContent.setFileName(tempCsv.getName());
+      binaryContent.setContentType("text/csv");
+      binaryContent.setSize(tempCsv.length());
+      binaryContentRepository.save(binaryContent);
+
+      return contentId;
+    } catch (Exception e) {
+      try{
+        binaryContentStorage.deleteCsvFile(contentId);
+      } catch (IOException ex) {
+        log.warn("CSV 파일 삭제 실패 (id={}): {}", contentId, ex.getMessage());
+      }
+      binaryContentRepository.deleteById(contentId);
+      throw new RuntimeException("직원 CSV 파일 생성 중 오류 발생", e);
+    } finally {
+      if (tempCsv != null && tempCsv.exists()) { // 만들었던 임시 파일을 삭제해주기
+        if (!tempCsv.delete()) {
+          log.warn("임시 파일 삭제 실패: {}", tempCsv.getAbsolutePath());
+        }
+      }
+    }
+  }
+
+  private Long saveErrorLogFile(Long backupId, Exception e) {
+    StringWriter sw = new StringWriter();
+    e.printStackTrace(new PrintWriter(sw));
+    String trace = sw.toString();
+
+    BinaryContent binaryContent = new BinaryContent();
+    binaryContent.setFileName("backup_error_" + backupId + ".log");
+    binaryContent.setContentType("text/plain");
+    binaryContent = binaryContentRepository.save(binaryContent);
+    Long contentId = binaryContent.getId();
+
+    try{
+      binaryContentStorage.putErrorLog(contentId, trace);
+    }catch (IOException ex) {
+      throw new RuntimeException("에러 로그 파일 저장 실패: ", ex);
+    }
+    return contentId;
+  }
+
 }
 
 

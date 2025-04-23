@@ -1,13 +1,15 @@
 package com.hrbank.storage;
 
 import com.hrbank.dto.binarycontent.BinaryContentDto;
-import com.hrbank.repository.EmployeeRepository;
 import jakarta.annotation.PostConstruct;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,8 +27,7 @@ public class BinaryContentStorage {
   private final Path root;
   private static final Logger log = LoggerFactory.getLogger(BinaryContentStorage.class);
 
-  public BinaryContentStorage(@Value(".hrbank/storage") Path root,
-      EmployeeRepository employeeRepository){
+  public BinaryContentStorage(@Value(".hrbank/storage") Path root){
     this.root = root;
   }
 
@@ -41,7 +42,7 @@ public class BinaryContentStorage {
     }
   }
 
-  // 실제 파일 Storage에 저장
+  // 프로필 이미지 파일 Storage에 저장
   public void put(Long id, byte[] data){
     Path filePath = root.resolve(id.toString());
     if (Files.exists(filePath)) {
@@ -52,6 +53,18 @@ public class BinaryContentStorage {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  // csv 파일 저장
+  public void putCsvFile(Long id, File file) throws IOException {
+    Path filePath = root.resolve(id + ".csv");
+    Files.copy(file.toPath(), filePath, StandardCopyOption.REPLACE_EXISTING);
+  }
+
+  // log 파일 저장
+  public void putErrorLog(Long id, String log) throws IOException {
+    Path logPath = root.resolve(id + ".log");
+    Files.writeString(logPath, log, StandardCharsets.UTF_8);
   }
 
   // id로 실제 파일 찾기
@@ -65,6 +78,12 @@ public class BinaryContentStorage {
     } catch (IOException e) {
       throw new RuntimeException("파일 읽기 중 실패: " + e);
     }
+  }
+
+  // 데이터 백업 과정이 실패하였을 때, 저장한 csv 파일 삭제
+  public void deleteCsvFile(Long id) throws IOException {
+    Path target = root.resolve(id + ".csv");
+    Files.deleteIfExists(target);
   }
 
   // 파일 다운로드 - .csv, .log 컨텐트 타입 인식되도록 함.
