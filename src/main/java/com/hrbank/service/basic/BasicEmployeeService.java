@@ -146,4 +146,11 @@ public class BasicEmployeeService implements EmployeeService {
 
     return employeeMapper.toDto(employee);
   }
+
+  @Override
+  public EmployeeDto findById(Long id) {
+    Employee employee = employeeRepository.findById(id)
+        .orElseThrow(() -> new RestException(ErrorCode.EMPLOYEE_NOT_FOUND));
+    return employeeMapper.toDto(employee);
+  }
 }

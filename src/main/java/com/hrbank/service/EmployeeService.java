@@ -14,4 +14,6 @@ public interface EmployeeService {
   EmployeeDto create(EmployeeCreateRequest request);
 
   EmployeeDto delete(Long id);
+
+  EmployeeDto findById(Long id);
 }
