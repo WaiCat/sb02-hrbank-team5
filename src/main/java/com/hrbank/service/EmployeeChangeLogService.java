@@ -1,5 +1,6 @@
 package com.hrbank.service;
 
+import com.hrbank.dto.employeeChangeLog.CursorPageResponseChangeLogDto;
 import com.hrbank.dto.employeeChangeLog.EmployeeChangeLogSearchRequest;
 import com.hrbank.entity.Employee;
 import com.hrbank.entity.EmployeeChangeLog;
@@ -20,4 +21,7 @@ public interface EmployeeChangeLogService {
 
   //  특성 시점 이후 변경된 내용이 있는지 확인
   boolean hasChangeSince(LocalDateTime at);
+
+  // 이력 목록 조회
+  CursorPageResponseChangeLogDto search(EmployeeChangeLogSearchRequest request, Long idAfter, String cursor, int size);
 }

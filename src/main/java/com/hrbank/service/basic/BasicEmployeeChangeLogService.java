@@ -1,5 +1,7 @@
 package com.hrbank.service.basic;
 
+import com.hrbank.dto.employeeChangeLog.ChangeLogDto;
+import com.hrbank.dto.employeeChangeLog.CursorPageResponseChangeLogDto;
 import com.hrbank.dto.employeeChangeLog.EmployeeChangeLogSearchRequest;
 import com.hrbank.entity.BinaryContent;
 import com.hrbank.entity.Department;
@@ -7,16 +9,20 @@ import com.hrbank.entity.Employee;
 import com.hrbank.entity.EmployeeChangeLog;
 import com.hrbank.entity.EmployeeChangeLogDetail;
 import com.hrbank.enums.EmployeeChangeLogType;
+import com.hrbank.mapper.EmployeeChangeLogMapper;
 import com.hrbank.repository.EmployeeChangeLogRepository;
 import com.hrbank.repository.specification.EmployeeChangeLogSpecification;
 import com.hrbank.service.EmployeeChangeLogService;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +31,7 @@ import org.springframework.stereotype.Service;
 public class BasicEmployeeChangeLogService implements EmployeeChangeLogService {
 
   private final EmployeeChangeLogRepository changeLogRepository;
+  private final EmployeeChangeLogMapper changeLogMapper;
 
   // 직원 정보가 생성, 수정, 삭제 될 때 호출되어야 함
   // 변경점에 대한 로그를 생성하는 메서드
@@ -77,6 +84,7 @@ public class BasicEmployeeChangeLogService implements EmployeeChangeLogService {
     // 4. 저장
     changeLogRepository.save(changeLog);
   }
+
   @Override
   public Page<EmployeeChangeLog> searchLogs(EmployeeChangeLogSearchRequest request, Pageable pageable) {
     Specification<EmployeeChangeLog> spec = Specification.<EmployeeChangeLog>where(null)
@@ -99,9 +107,62 @@ public class BasicEmployeeChangeLogService implements EmployeeChangeLogService {
     return changeLogRepository.existsByAtAfter(at);
   }
 
+  @Override
+  public CursorPageResponseChangeLogDto search(EmployeeChangeLogSearchRequest request, Long idAfter, String cursor, int size) {
+    Long resolvedIdAfter = idAfter;
+    // cursor가 있으면 우선적으로 사용
+    if (cursor != null) {
+      try {
+        resolvedIdAfter = Long.parseLong(cursor);
+      } catch (NumberFormatException e) {
+        throw new IllegalArgumentException("잘못된 커서 값입니다: " + cursor);
+      }
+    }
+
+    // 기본 정렬 필드 및 방향 설정
+    String sortField = Optional.ofNullable(request.sortField()).orElse("at");
+    Sort.Direction direction = "asc".equalsIgnoreCase(request.sortDirection()) ? Sort.Direction.ASC : Sort.Direction.DESC;
+
+    // 정렬 조건 생성 (id 추가로 안정성 확보)
+    Sort sort = Sort.by(direction, sortField).and(Sort.by(direction, "id"));
+    Pageable pageable = PageRequest.of(0, size, sort);
+
+    // 검색 조건 Specification 생성
+    Specification<EmployeeChangeLog> spec = EmployeeChangeLogSpecification.search(request);
+
+    // 커서 기반 페이징 조건 추가
+    if (resolvedIdAfter != null) {
+      Long finalIdAfter = resolvedIdAfter;
+      spec = spec.and((root, query, cb) -> cb.lessThan(root.get("id").as(Long.class), finalIdAfter));
+    }
+
+
+    // 검색 실행
+    Page<EmployeeChangeLog> page = changeLogRepository.findAll(spec, pageable);
+
+    // DTO 매핑
+    List<ChangeLogDto> logs = page.getContent().stream()
+        .map(changeLogMapper::toDto)
+        .toList();
+
+    // 다음 커서 계산
+    Long nextIdAfter = page.hasNext() ? logs.get(logs.size() - 1).id() : null;
+    String nextCursor = nextIdAfter != null ? String.valueOf(nextIdAfter) : null;
+
+    return new CursorPageResponseChangeLogDto(
+        logs,                                // content
+        nextCursor,                        // nextCursor
+        nextIdAfter,                          // nextIdAfter
+        size,                                // size 요청값 그대로
+        page.getTotalElements(),             // 전체 개수
+        page.hasNext()                       // hasNext
+    );
+  }
+
+
   // 변경된 로그를 저장하는 메서드. 반복되어 별도 분리
   private void addDetailIfChanged(EmployeeChangeLog log, String field, String before, String after) {
-    if (Objects.equals(before, after) != true) {
+    if (!Objects.equals(before, after)) {
       log.addDetail(new EmployeeChangeLogDetail(log, field, before, after));
     }
   }

@@ -1,5 +1,6 @@
 package com.hrbank.repository.specification;
 
+import com.hrbank.dto.employeeChangeLog.EmployeeChangeLogSearchRequest;
 import com.hrbank.entity.EmployeeChangeLog;
 import com.hrbank.enums.EmployeeChangeLogType;
 import java.time.LocalDateTime;
@@ -38,5 +39,14 @@ public class EmployeeChangeLogSpecification {
         (start == null || end == null)
             ? null
             : cb.between(root.get("at"), start, end);
+  }
+
+  // 검색을 위한 메서드
+  public static Specification<EmployeeChangeLog> search(EmployeeChangeLogSearchRequest request) {
+    return Specification.where(employeeNumberContains(request.employeeNumber()))
+        .and(memoContains(request.memo()))
+        .and(ipAddressContains(request.ipAddress()))
+        .and(typeEquals(request.type()))
+        .and(atBetween(request.atFrom(), request.atTo()));
   }
 }

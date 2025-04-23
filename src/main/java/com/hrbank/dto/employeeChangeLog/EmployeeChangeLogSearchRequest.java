@@ -9,5 +9,7 @@ public record EmployeeChangeLogSearchRequest(
     String memo,
     String ipAddress,
     LocalDateTime atFrom,
-    LocalDateTime atTo
+    LocalDateTime atTo,
+    String sortField,
+    String sortDirection
 ) {}
