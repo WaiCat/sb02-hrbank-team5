@@ -66,9 +66,9 @@ public class DepartmentController implements DepartmentApi {
             @RequestParam(required = false) String nameOrDescription,
             @RequestParam(required = false) Long idAfter,
             @RequestParam(required = false) String cursor,
-            @RequestParam(required = false, defaultValue = "10") Integer size,
-            @RequestParam(required = false, defaultValue = "establishedDate") String sortField,
-            @RequestParam(required = false, defaultValue = "asc") String sortDirection
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(defaultValue = "establishedDate") String sortField,
+            @RequestParam(defaultValue = "asc") String sortDirection
     ) {
         CursorPageResponseDepartmentDto response = departmentService.getDepartments(
                 nameOrDescription, idAfter, cursor, size, sortField, sortDirection);

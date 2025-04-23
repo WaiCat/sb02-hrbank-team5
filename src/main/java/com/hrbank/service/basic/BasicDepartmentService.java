@@ -9,8 +9,13 @@ import com.hrbank.exception.ErrorCode;
 import com.hrbank.exception.RestException;
 import com.hrbank.mapper.DepartmentMapper;
 import com.hrbank.repository.DepartmentRepository;
+import com.hrbank.repository.specification.DepartmentSpecifications;
 import com.hrbank.service.DepartmentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -99,21 +104,23 @@ public class BasicDepartmentService implements DepartmentService {
         sortField = (sortField != null) ? sortField : "establishedDate";
         sortDirection = (sortDirection != null) ? sortDirection : "asc";
 
-        List<Department> departments;
+        // Sort 생성
+        Sort.Direction direction = Sort.Direction.fromString(sortDirection);
+        Sort sort = Sort.by(direction, sortField).and(Sort.by(Sort.Direction.ASC, "id"));
 
-        // sortField 값에 따라 적절한 메서드 호출
-        if ("name".equalsIgnoreCase(sortField)) {
-            departments = departmentRepository.findByNameOrDescriptionWithSorting(
-                    nameOrDescription, nameOrDescription, idAfter, pageSize + 1, "name", sortDirection);
-        } else {
-            departments = departmentRepository.findByNameOrDescriptionWithSorting(
-                    nameOrDescription, nameOrDescription, idAfter, pageSize + 1, "establishedDate", sortDirection);
-        }
+        // 페이지네이션 (LIMIT: pageSize + 1)
+        Pageable pageable = PageRequest.of(0, pageSize + 1, sort);
 
-        //전체 개수 조회
-        Long totalElements = departmentRepository.countByNameOrDescription(
-                nameOrDescription, nameOrDescription
+        // Specification 조립
+        Specification<Department> spec = DepartmentSpecifications.buildSearchSpecification(
+                nameOrDescription, idAfter
         );
+
+        // 쿼리 실행
+        List<Department> departments = departmentRepository.findAll(spec, pageable).getContent();
+
+        // 전체 개수 조회
+        long totalElements = departmentRepository.count(spec);
 
         return createPageResponse(departments, pageSize, cursor, idAfter, totalElements);
     }
