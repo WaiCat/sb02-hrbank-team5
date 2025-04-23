@@ -9,7 +9,6 @@ import org.mapstruct.Mapper;
 import org.springframework.context.annotation.Primary;
 
 @Mapper(componentModel = "spring")
-@Primary
 public interface EmployeeChangeLogMapper {
   ChangeLogDto toDto(EmployeeChangeLog entity);
   DiffDto toDiffDto(EmployeeChangeLogDetail detail);
