@@ -59,18 +59,11 @@ public class BasicBinaryContentService implements BinaryContentService {
   @Override
   @Transactional
   public void delete(Long id) {
-    Employee employee = employeeRepository.findById(id)
-        .orElseThrow(() -> new RestException(ErrorCode.PROFILE_IMAGE_NOT_FOUND));
-
-    if (employee.getProfileImage() != null) {
-      try {
-        binaryContentStorage.deleteProfileImage(employee.getProfileImage().getId());
-      } catch (IOException e) {
-        throw new RestException(ErrorCode.FILE_DELETE_FAILED);
-      }
+    if (!binaryContentRepository.existsById(id)) {
+      throw new RestException(ErrorCode.PROFILE_IMAGE_NOT_FOUND);
     }
-
-    employeeRepository.delete(employee);
+    binaryContentStorage.delete(id);
+    binaryContentRepository.deleteById(id);
   }
 }
 
