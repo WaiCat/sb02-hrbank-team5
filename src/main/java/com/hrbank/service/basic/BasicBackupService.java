@@ -7,6 +7,8 @@ import com.hrbank.dto.backup.CursorPageResponseBackupDto;
 import com.hrbank.entity.Backup;
 import com.hrbank.entity.BinaryContent;
 import com.hrbank.enums.BackupStatus;
+import com.hrbank.exception.ErrorCode;
+import com.hrbank.exception.RestException;
 import com.hrbank.generator.EmployeeCsvGenerator;
 import com.hrbank.mapper.BackupMapper;
 import com.hrbank.repository.BackupRepository;
@@ -266,7 +268,7 @@ public class BasicBackupService implements BackupService {
     try{
       binaryContentStorage.putErrorLog(contentId, trace);
     }catch (IOException ex) {
-      throw new RuntimeException("에러 로그 파일 저장 실패: ", ex);
+      throw new RestException(ErrorCode.FILE_WRITE_ERROR);
     }
     return contentId;
   }

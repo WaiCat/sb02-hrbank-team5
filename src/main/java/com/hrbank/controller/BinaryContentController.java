@@ -1,5 +1,6 @@
 package com.hrbank.controller;
 
+import com.hrbank.controller.api.BinaryContentApi;
 import com.hrbank.dto.binarycontent.BinaryContentDto;
 import com.hrbank.service.BinaryContentService;
 import com.hrbank.storage.BinaryContentStorage;
@@ -14,10 +15,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/files")
 @RequiredArgsConstructor
-public class BinaryContentController {
+public class BinaryContentController implements BinaryContentApi {
   private final BinaryContentService binaryContentService;
   private final BinaryContentStorage binaryContentStorage;
 
+  @Override
   @GetMapping("/{id}/download")
   public ResponseEntity<Resource>download(@PathVariable("id") Long id) {
     BinaryContentDto contentDto = binaryContentService.findById(id);

@@ -1,6 +1,8 @@
 package com.hrbank.storage;
 
 import com.hrbank.dto.binarycontent.BinaryContentDto;
+import com.hrbank.exception.ErrorCode;
+import com.hrbank.exception.RestException;
 import jakarta.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
@@ -10,8 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.InputStreamResource;
@@ -21,11 +22,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 @ConditionalOnProperty(name = "hrbank.storage.type", value = "local")
 public class BinaryContentStorage {
   private final Path root;
-  private static final Logger log = LoggerFactory.getLogger(BinaryContentStorage.class);
 
   public BinaryContentStorage(@Value(".hrbank/storage") Path root){
     this.root = root;
@@ -37,7 +38,7 @@ public class BinaryContentStorage {
       try {
         Files.createDirectories(root);
       } catch (IOException e) {
-        throw new RuntimeException(e);
+        throw new RestException(ErrorCode.STORAGE_INITIALIZATION_FAILED);
       }
     }
   }
@@ -46,7 +47,7 @@ public class BinaryContentStorage {
   public void put(Long id, byte[] data){
     Path filePath = root.resolve(id.toString());
     if (Files.exists(filePath)) {
-      throw new RuntimeException("이미 존재하는 파일");
+      throw new RestException(ErrorCode.FILE_ALREADY_EXIST);
     }
     try (OutputStream fos = Files.newOutputStream(filePath)) {
       fos.write(data);
@@ -71,12 +72,12 @@ public class BinaryContentStorage {
   public InputStream get(Long id){
     Path filePath = root.resolve(id.toString());
     if (!Files.exists(filePath)) {
-      throw new RuntimeException("존재하지 않는 파일");
+      throw new RestException(ErrorCode.FILE_NOT_FOUND);
     }
     try {
       return Files.newInputStream(filePath);
     } catch (IOException e) {
-      throw new RuntimeException("파일 읽기 중 실패: " + e);
+      throw new RestException(ErrorCode.FILE_READ_ERROR);
     }
   }
 

@@ -3,21 +3,20 @@ package com.hrbank.service.basic;
 import com.hrbank.dto.binarycontent.BinaryContentCreateRequest;
 import com.hrbank.dto.binarycontent.BinaryContentDto;
 import com.hrbank.entity.BinaryContent;
-import com.hrbank.mapper.BinaryContentMapper;
 import com.hrbank.exception.ErrorCode;
 import com.hrbank.exception.RestException;
+import com.hrbank.mapper.BinaryContentMapper;
 import com.hrbank.repository.BinaryContentRepository;
 import com.hrbank.service.BinaryContentService;
 import com.hrbank.storage.BinaryContentStorage;
-import io.swagger.v3.oas.annotations.servers.Server;
 import java.io.IOException;
-import java.util.NoSuchElementException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
-@Server
 @RequiredArgsConstructor
 public class BasicBinaryContentService implements BinaryContentService {
   private final BinaryContentRepository binaryContentRepository;
@@ -34,7 +33,8 @@ public class BasicBinaryContentService implements BinaryContentService {
     try {
       bytes = request.file().getBytes();
     } catch (IOException e) {
-      throw new RestException(ErrorCode.PROFILE_IMAGE_NOT_FOUND);
+      log.error("파일의 byte[]를 가져오는 도중 에러 발생 : {}", e.getMessage());
+      throw new RestException(ErrorCode.FILE_READ_ERROR);
     }
     BinaryContent binaryContent = new BinaryContent(originalFilename, contentType, size);
     binaryContentRepository.save(binaryContent);
@@ -45,7 +45,7 @@ public class BasicBinaryContentService implements BinaryContentService {
   @Override
   public BinaryContentDto findById(Long id){
     BinaryContent binaryContent = binaryContentRepository.findById(id)
-        .orElseThrow(() -> new NoSuchElementException(id + " 에 해당하는 BinaryContent를 찾을 수 없음"));
+        .orElseThrow(() -> new RestException(ErrorCode.PROFILE_IMAGE_NOT_FOUND));
     return binaryContentMapper.toDto(binaryContent);
   }
 
