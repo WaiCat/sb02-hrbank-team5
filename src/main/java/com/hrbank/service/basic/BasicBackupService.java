@@ -1,28 +1,104 @@
 package com.hrbank.service.basic;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hrbank.dto.backup.BackupDto;
+import com.hrbank.dto.backup.CursorPageResponseBackupDto;
 import com.hrbank.entity.Backup;
+import com.hrbank.entity.BinaryContent;
 import com.hrbank.enums.BackupStatus;
 import com.hrbank.mapper.BackupMapper;
 import com.hrbank.repository.BackupRepository;
+import com.hrbank.repository.BinaryContentRepository;
+import com.hrbank.repository.EmployeeChangeLogRepository;
+import com.hrbank.repository.EmployeeRepository;
 import com.hrbank.service.BackupService;
 import jakarta.persistence.EntityNotFoundException;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.time.LocalDateTime;
+import java.util.Base64;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Slf4j
 public class BasicBackupService implements BackupService {
 
-  private BackupRepository backupRepository;
-  private BackupMapper backupMapper;
-  private EmployeeRepository employeeRepository;
-  private BinaryContentRepository binaryContentRepository;
+  private final BackupRepository backupRepository;
+  private final BackupMapper backupMapper;
+  private final EmployeeRepository employeeRepository;
+  private final EmployeeChangeLogRepository employeeChangeLogRepository;
+  private final BinaryContentRepository binaryContentRepository;
+
+  @Override
+  public CursorPageResponseBackupDto searchBackups(
+      String worker, BackupStatus status, Instant from, Instant to,
+      Long id, String cursor, Integer size, String sortField, String sortDirection) {
+
+    // 필터링
+    List<Backup> filtered = backupRepository.findAll().stream()
+        .filter(backup -> worker == null || backup.getWorker().equals(worker))
+        .filter(backup -> status == null || backup.getStatus() == status)
+        .filter(backup -> from == null || backup.getStartedAt().isAfter(from))
+        .filter(backup -> to == null || backup.getStartedAt().isBefore(to))
+        .toList();
+
+    // 정렬 기준 설정
+    Comparator<Backup> comparator = "endedAt".equalsIgnoreCase(sortField)
+        ? Comparator.comparing(Backup::getEndedAt)
+        : Comparator.comparing(Backup::getStartedAt);
+
+    if ("DESC".equalsIgnoreCase(sortDirection)) {
+      comparator = comparator.reversed();
+    }
+
+    filtered.sort(comparator);
+
+    // 커서 디코딩 및 시작 인덱스 계산
+    int finalSize = (size == null || size <= 0) ? 10 : size;
+    int startIndex = 0;
+    Long cursorId = null;
+
+    if (cursor != null && !cursor.isBlank()) {
+      cursorId = decodeCursor(cursor);
+
+      for (int i = 0; i < filtered.size(); i++) {
+        if (Objects.equals(filtered.get(i).getId(), cursorId)) {
+          startIndex = i + 1;
+          break;
+        }
+      }
+    }
+
+    // 페이지 처리
+    int endIndex = Math.min(startIndex + finalSize, filtered.size());
+    List<BackupDto> page = filtered.subList(startIndex, endIndex).stream()
+        .map(backupMapper::toDto)
+        .toList();
+
+    boolean hasNext = endIndex < filtered.size();
+    Long nextIdAfter = hasNext ? filtered.get(endIndex - 1).getId() : null;
+    String nextCursor = hasNext ? encodeCursor(nextIdAfter) : null;
+
+    return new CursorPageResponseBackupDto(
+        page,
+        nextCursor,
+        nextIdAfter,
+        finalSize,
+        filtered.size(),
+        hasNext
+    );
+  }
+
 
   @Override
   public void runBackup(String requesterIp) {
@@ -43,14 +119,15 @@ public class BasicBackupService implements BackupService {
 
     try {
       // 백업 파일 생성
-      // 파일 생성 추후 구현
-      Long fileId = generateBackupFile(inProgress.id());
+      Long fileId = generateBackupFile();
 
       // 성공 처리
       markBackupCompleted(inProgress.id(), fileId);
+
+
     } catch (Exception e) {
-      // 에러 로그 파일 저장 (추후 구현)
-      Long logFileId = saveErrorLogFile(e); // 가정: 오류 로그 저장 메서드
+      // 로그 파일 생성
+      Long logFileId = saveErrorLogFile(e);
 
       // 실패 처리
       markBackupFailed(inProgress.id(), logFileId);
@@ -69,7 +146,7 @@ public class BasicBackupService implements BackupService {
 
     // 특정 시간 이후 직원 업데이트 내역 확인
     // 추후 구현 필요
-    return employeeRepository.existsByUpdatedAtAfter(lastBackupTime);
+    return employeeChangeLogRepository.existsByUpdatedAtAfter(lastBackupTime);
   }
 
   @Override
@@ -92,9 +169,7 @@ public class BasicBackupService implements BackupService {
     BinaryContent file = binaryContentRepository.findById(fileId)
         .orElseThrow(() -> new EntityNotFoundException("파일을 찾을 수 없습니다."));
 
-    backup.setStatus(BackupStatus.COMPLETED);
-    backup.setEndedAt(Instant.now());
-    backup.setFile(file);
+    backup.completeBackup(file);
   }
 
   @Override
@@ -105,8 +180,29 @@ public class BasicBackupService implements BackupService {
     BinaryContent logFile = binaryContentRepository.findById(logFileId)
         .orElseThrow(() -> new EntityNotFoundException("로그 파일을 찾을 수 없습니다."));
 
-    backup.setStatus(BackupStatus.FAILED);
-    backup.setEndedAt(Instant.now());
-    backup.setFile(logFile);
+    backup.failBackup(logFile);
+  }
+
+  private Long decodeCursor(String cursor) {
+    try {
+      byte[] decodedBytes = Base64.getDecoder().decode(cursor);
+      String json = new String(decodedBytes, StandardCharsets.UTF_8);
+
+      // JSON에서 "id" 필드 추출
+      ObjectMapper objectMapper = new ObjectMapper();
+      JsonNode node = objectMapper.readTree(json);
+      return node.has("id") ? node.get("id").asLong() : null;
+    } catch (Exception e) {
+      log.warn("Invalid cursor: {}", cursor);
+      throw new IllegalArgumentException("Invalid cursor format: " + cursor, e);
+    }
+  }
+
+  private String encodeCursor(Long id) {
+    if (id == null) return null;
+    String json = "{\"id\":" + id + "}";
+    return Base64.getEncoder().encodeToString(json.getBytes(StandardCharsets.UTF_8));
   }
 }
+
+

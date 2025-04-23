@@ -15,17 +15,16 @@ import java.time.Instant;;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
 
 @Entity
-@Data
+@Getter
 @Builder
 @Table(name = "backups")
 @AllArgsConstructor
 public class Backup {
 
-  public Backup() {
-
-  }
+  public Backup() {  }
 
   @Id
   @GeneratedValue
@@ -37,7 +36,7 @@ public class Backup {
   @Column(name = "started_at", nullable = false)
   private Instant startedAt;
 
-  @Column(name = "ended_at")
+  @Column(name = "ended_at", nullable = false)
   private Instant endedAt;
 
   @Enumerated(EnumType.STRING)
@@ -48,5 +47,16 @@ public class Backup {
   @JoinColumn(name = "file_id")
   private BinaryContent file;
 
+  public void completeBackup(BinaryContent file) {
+    this.status = BackupStatus.COMPLETED;
+    this.endedAt = Instant.now();
+    this.file = file;
+  }
+
+  public void failBackup(BinaryContent logFile) {
+    this.status = BackupStatus.FAILED;
+    this.endedAt = Instant.now();
+    this.file = logFile;
+  }
 
 }

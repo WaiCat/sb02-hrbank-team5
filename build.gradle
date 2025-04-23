@@ -40,6 +40,9 @@ dependencies {
     implementation 'org.mapstruct:mapstruct:1.6.3'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
 
+    // CSV
+    implementation 'org.apache.commons:commons-csv:1.10.0'
+
     // Dev Tools
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 

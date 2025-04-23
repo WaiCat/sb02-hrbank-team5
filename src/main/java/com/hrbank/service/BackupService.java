@@ -1,10 +1,16 @@
 package com.hrbank.service;
 
 import com.hrbank.dto.backup.BackupDto;
+import com.hrbank.dto.backup.CursorPageResponseBackupDto;
+import com.hrbank.enums.BackupStatus;
+import java.time.Instant;
 
 public interface BackupService {
 
-  //백업 수행
+  // 조건에 맞는 백업 목록 조회
+  CursorPageResponseBackupDto searchBackups(String worker, BackupStatus status, Instant from, Instant to, Long id, String cursor, Integer size, String sortField, String sortDirection);
+
+  // 백업 수행
   void runBackup(String requesterIp);
 
   // 백업 필요 여부 판단: 가장 최근 완료 이후 변경 있으면 true

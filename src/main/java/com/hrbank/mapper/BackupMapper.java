@@ -2,19 +2,12 @@ package com.hrbank.mapper;
 
 import com.hrbank.dto.backup.BackupDto;
 import com.hrbank.entity.Backup;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-public class BackupMapper {
-  public static BackupDto toDto(Backup entity) {
-    if (entity == null) return null;
+@Mapper(componentModel = "spring")
+public interface BackupMapper {
 
-    return new BackupDto(
-        entity.getId(),
-        entity.getWorker(),
-        entity.getStartedAt(),
-        entity.getEndedAt(),
-        entity.getStatus(),
-        entity.getFile() != null ? entity.getFile().getId() : null
-    );
-  }
-
+  @Mapping(source = "file.id", target = "fileId")
+  BackupDto toDto(Backup backup);
 }

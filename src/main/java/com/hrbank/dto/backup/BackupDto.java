@@ -10,7 +10,7 @@ public record BackupDto(
     Instant startedAt,
     Instant endedAt,
     BackupStatus status,
-    UUID fileId
+    Long fileId
 ) {
 
 }
