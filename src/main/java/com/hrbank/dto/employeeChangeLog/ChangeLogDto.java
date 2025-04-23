@@ -2,12 +2,15 @@ package com.hrbank.dto.employeeChangeLog;
 
 import com.hrbank.enums.EmployeeChangeLogType;
 import java.time.LocalDateTime;
+import java.util.List;
 
-public record EmployeeChangeLogSearchRequest(
-    String employeeNumber,
+// 상세 조회용 dto
+public record ChangeLogDto(
+    Long id,
     EmployeeChangeLogType type,
+    String employeeNumber,
     String memo,
     String ipAddress,
-    LocalDateTime atFrom,
-    LocalDateTime atTo
+    LocalDateTime at,
+    List<DiffDto> details
 ) {}

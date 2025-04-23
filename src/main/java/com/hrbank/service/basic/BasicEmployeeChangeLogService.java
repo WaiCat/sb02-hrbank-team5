@@ -19,7 +19,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +29,6 @@ public class BasicEmployeeChangeLogService implements EmployeeChangeLogService {
   // 직원 정보가 생성, 수정, 삭제 될 때 호출되어야 함
   // 변경점에 대한 로그를 생성하는 메서드
   @Override
-  @Transactional
   public void saveChangeLog(Employee before, Employee after, String memo, String ipAddress) {
 
     EmployeeChangeLogType type;
@@ -79,15 +77,14 @@ public class BasicEmployeeChangeLogService implements EmployeeChangeLogService {
     // 4. 저장
     changeLogRepository.save(changeLog);
   }
-
   @Override
   public Page<EmployeeChangeLog> searchLogs(EmployeeChangeLogSearchRequest request, Pageable pageable) {
     Specification<EmployeeChangeLog> spec = Specification.<EmployeeChangeLog>where(null)
-        .and(EmployeeChangeLogSpecification.employeeNumberContains(request.getEmployeeNumber()))
-        .and(EmployeeChangeLogSpecification.memoContains(request.getMemo()))
-        .and(EmployeeChangeLogSpecification.ipAddressContains(request.getIpAddress()))
-        .and(EmployeeChangeLogSpecification.typeEquals(request.getType()))
-        .and(EmployeeChangeLogSpecification.atBetween(request.getAtFrom(), request.getAtTo()));
+        .and(EmployeeChangeLogSpecification.employeeNumberContains(request.employeeNumber()))
+        .and(EmployeeChangeLogSpecification.memoContains(request.memo()))
+        .and(EmployeeChangeLogSpecification.ipAddressContains(request.ipAddress()))
+        .and(EmployeeChangeLogSpecification.typeEquals(request.type()))
+        .and(EmployeeChangeLogSpecification.atBetween(request.atFrom(), request.atTo()));
 
     return changeLogRepository.findAll(spec, pageable);
   }
@@ -97,9 +94,14 @@ public class BasicEmployeeChangeLogService implements EmployeeChangeLogService {
     return changeLogRepository.findById(id); // 추후 fetch join 필요하면 custom query로 변경
   }
 
+  @Override
+  public boolean hasChangeSince(LocalDateTime at) {
+    return changeLogRepository.existsByAtAfter(at);
+  }
+
   // 변경된 로그를 저장하는 메서드. 반복되어 별도 분리
   private void addDetailIfChanged(EmployeeChangeLog log, String field, String before, String after) {
-    if (!Objects.equals(before, after)) {
+    if (Objects.equals(before, after) != true) {
       log.addDetail(new EmployeeChangeLogDetail(log, field, before, after));
     }
   }
