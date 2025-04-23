@@ -50,4 +50,14 @@ public class EmployeeChangeLogController {
     return ResponseEntity.ok(details);
   }
 
+  @GetMapping("/count")
+  public ResponseEntity<Long> countChangeLogs(
+      @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE_TIME) LocalDateTime fromDate,
+      @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE_TIME) LocalDateTime toDate
+  ) {
+    long count = changeLogService.countChangeLogs(fromDate, toDate);
+    return ResponseEntity.ok(count);
+  }
+
+
 }

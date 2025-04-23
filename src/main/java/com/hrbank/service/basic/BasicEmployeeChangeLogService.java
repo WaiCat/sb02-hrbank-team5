@@ -171,6 +171,24 @@ public class BasicEmployeeChangeLogService implements EmployeeChangeLogService {
     return changeLogMapper.toDiffDtoList(log.getDetails());
   }
 
+  @Override
+  public long countChangeLogs(LocalDateTime fromDate, LocalDateTime toDate) {
+    LocalDateTime now = LocalDateTime.now();
+
+    // 기본값 설정
+    LocalDateTime start = (fromDate != null) ? fromDate : now.minusDays(7);
+    LocalDateTime end = (toDate != null) ? toDate : now;
+
+    if (fromDate.isAfter(toDate)) {
+      throw new RestException(ErrorCode.INVALID_DATE_RANGE);
+    }
+
+    Specification<EmployeeChangeLog> spec = Specification
+        .where(EmployeeChangeLogSpecification.atBetween(start, end));
+
+    return changeLogRepository.count(spec);
+  }
+
 
   // 변경된 로그를 저장하는 메서드. 반복되어 별도 분리
   private void addDetailIfChanged(EmployeeChangeLog log, String field, String before, String after) {

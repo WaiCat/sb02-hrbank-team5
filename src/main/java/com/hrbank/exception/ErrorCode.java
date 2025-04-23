@@ -30,7 +30,9 @@ public enum ErrorCode {
 
   CHANGE_LOG_NOT_FOUND(HttpStatus.NOT_FOUND, "해당하는 변경 이력이 없습니다."),
   INVALID_CURSOR(HttpStatus.BAD_REQUEST, "커서 값이 올바르지 않습니다."),
-  INVALID_CHANGE_LOG_DATA(HttpStatus.BAD_REQUEST, "변경 로그 데이터가 올바르지 않습니다.");
+  INVALID_CHANGE_LOG_DATA(HttpStatus.BAD_REQUEST, "변경 로그 데이터가 올바르지 않습니다."),
+  INVALID_DATE_RANGE(HttpStatus.BAD_REQUEST, "시작일은 종료일보다 이후일 수 없습니다.");
+
 
 
   private final HttpStatus status;

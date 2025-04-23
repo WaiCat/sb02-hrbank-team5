@@ -28,4 +28,6 @@ public interface EmployeeChangeLogService {
   CursorPageResponseChangeLogDto search(EmployeeChangeLogSearchRequest request, Long idAfter, String cursor, int size);
 
   List<DiffDto> getChangeLogDetails(Long changeLogId);
+
+  long countChangeLogs(LocalDateTime fromDate, LocalDateTime toDate);
 }
