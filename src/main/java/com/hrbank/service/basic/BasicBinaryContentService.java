@@ -3,15 +3,10 @@ package com.hrbank.service.basic;
 import com.hrbank.dto.binarycontent.BinaryContentCreateRequest;
 import com.hrbank.dto.binarycontent.BinaryContentDto;
 import com.hrbank.entity.BinaryContent;
-
-import com.hrbank.entity.Employee;
-import com.hrbank.mapper.BinaryContentMapper;
 import com.hrbank.exception.ErrorCode;
 import com.hrbank.exception.RestException;
-import com.hrbank.mapper.EmployeeMapper;
-
+import com.hrbank.mapper.BinaryContentMapper;
 import com.hrbank.repository.BinaryContentRepository;
-import com.hrbank.repository.EmployeeRepository;
 import com.hrbank.service.BinaryContentService;
 import com.hrbank.storage.BinaryContentStorage;
 import java.io.IOException;
@@ -27,8 +22,6 @@ public class BasicBinaryContentService implements BinaryContentService {
   private final BinaryContentRepository binaryContentRepository;
   private final BinaryContentStorage binaryContentStorage;
   private final BinaryContentMapper binaryContentMapper;
-  private final EmployeeRepository employeeRepository;
-  private final EmployeeMapper employeeMapper;
 
   @Override
   @Transactional
@@ -66,4 +59,3 @@ public class BasicBinaryContentService implements BinaryContentService {
     binaryContentRepository.deleteById(id);
   }
 }
-
