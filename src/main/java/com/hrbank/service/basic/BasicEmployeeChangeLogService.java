@@ -1,10 +1,17 @@
 package com.hrbank.service.basic;
 
 import com.hrbank.dto.employeeChangeLog.EmployeeChangeLogSearchRequest;
+import com.hrbank.entity.BinaryContent;
+import com.hrbank.entity.Department;
+import com.hrbank.entity.Employee;
 import com.hrbank.entity.EmployeeChangeLog;
+import com.hrbank.entity.EmployeeChangeLogDetail;
+import com.hrbank.enums.EmployeeChangeLogType;
 import com.hrbank.repository.EmployeeChangeLogRepository;
 import com.hrbank.repository.specification.EmployeeChangeLogSpecification;
 import com.hrbank.service.EmployeeChangeLogService;
+import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -12,12 +19,66 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class BasicEmployeeChangeLogService implements EmployeeChangeLogService {
 
-  private final EmployeeChangeLogRepository repository;
+  private final EmployeeChangeLogRepository changeLogRepository;
+
+  // 직원 정보가 생성, 수정, 삭제 될 때 호출되어야 함
+  // 변경점에 대한 로그를 생성하는 메서드
+  @Override
+  @Transactional
+  public void saveChangeLog(Employee before, Employee after, String memo, String ipAddress) {
+
+    EmployeeChangeLogType type;
+    String employeeNumber;
+
+    // 1. 변경 유형 판별
+    if (before == null && after != null) {
+      type = EmployeeChangeLogType.CREATED;
+      employeeNumber = after.getEmployeeNumber();
+    } else if (before != null && after == null) {
+      type = EmployeeChangeLogType.DELETED;
+      employeeNumber = before.getEmployeeNumber();
+    } else {
+      type = EmployeeChangeLogType.UPDATED;
+      employeeNumber = after.getEmployeeNumber();
+    }
+
+    // 2. 로그 객체 생성
+    EmployeeChangeLog changeLog = new EmployeeChangeLog(
+        type,
+        employeeNumber,
+        memo,
+        ipAddress,
+        LocalDateTime.now()
+    );
+
+    // 3. UPDATED일 경우에만 필드 비교 후 detail 생성
+    if (type == EmployeeChangeLogType.UPDATED && before != null && after != null) {
+
+      addDetailIfChanged(changeLog, "name", before.getName(), after.getName());
+      addDetailIfChanged(changeLog, "email", before.getEmail(), after.getEmail());
+      addDetailIfChanged(changeLog, "position", before.getPosition(), after.getPosition());
+      addDetailIfChanged(changeLog, "status", before.getStatus().name(), after.getStatus().name());
+
+      // 부서는 null 가능성 있음
+      addDetailIfChanged(changeLog, "department",
+          Optional.ofNullable(before.getDepartment()).map(Department::getName).orElse(null),
+          Optional.ofNullable(after.getDepartment()).map(Department::getName).orElse(null));
+
+      // 프로필 이미지는 null 가능성 있음
+      addDetailIfChanged(changeLog, "profileImage",
+          Optional.ofNullable(before.getProfileImage()).map(BinaryContent::getFileName).orElse(null),
+          Optional.ofNullable(after.getProfileImage()).map(BinaryContent::getFileName).orElse(null));
+    }
+
+    // 4. 저장
+    changeLogRepository.save(changeLog);
+  }
 
   @Override
   public Page<EmployeeChangeLog> searchLogs(EmployeeChangeLogSearchRequest request, Pageable pageable) {
@@ -28,12 +89,19 @@ public class BasicEmployeeChangeLogService implements EmployeeChangeLogService {
         .and(EmployeeChangeLogSpecification.typeEquals(request.getType()))
         .and(EmployeeChangeLogSpecification.atBetween(request.getAtFrom(), request.getAtTo()));
 
-    return repository.findAll(spec, pageable);
+    return changeLogRepository.findAll(spec, pageable);
   }
 
   @Override
   public Optional<EmployeeChangeLog> findWithDetailsById(UUID id) {
-    return repository.findById(id); // 추후 fetch join 필요하면 custom query로 변경
+    return changeLogRepository.findById(id); // 추후 fetch join 필요하면 custom query로 변경
+  }
+
+  // 변경된 로그를 저장하는 메서드. 반복되어 별도 분리
+  private void addDetailIfChanged(EmployeeChangeLog log, String field, String before, String after) {
+    if (!Objects.equals(before, after)) {
+      log.addDetail(new EmployeeChangeLogDetail(log, field, before, after));
+    }
   }
 }
 
