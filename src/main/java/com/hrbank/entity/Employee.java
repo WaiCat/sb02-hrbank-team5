@@ -1,5 +1,6 @@
 package com.hrbank.entity;
 
+import com.hrbank.enums.EmployeeStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
