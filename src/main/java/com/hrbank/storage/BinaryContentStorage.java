@@ -81,6 +81,19 @@ public class BinaryContentStorage {
     }
   }
 
+  public void delete(Long id){
+    Path filePath = root.resolve(id.toString());
+    try{
+      boolean success = Files.deleteIfExists(filePath);
+      if(!success){
+        throw new RestException(ErrorCode.FILE_NOT_FOUND);
+      }
+    }catch (IOException e){
+      log.error("파일 삭제 중 오류 발생 (filePath={})", filePath, e);
+      throw new RestException(ErrorCode.FILE_DELETE_ERROR);
+    }
+  }
+
   // 데이터 백업 과정이 실패하였을 때, 저장한 csv 파일 삭제
   public void deleteCsvFile(Long id) throws IOException {
     Path target = root.resolve(id + ".csv");

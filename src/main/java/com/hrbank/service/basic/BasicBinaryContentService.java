@@ -49,4 +49,13 @@ public class BasicBinaryContentService implements BinaryContentService {
     return binaryContentMapper.toDto(binaryContent);
   }
 
+  @Override
+  public void delete(Long id){
+    if(!binaryContentRepository.existsById(id)){
+      throw new RestException(ErrorCode.PROFILE_IMAGE_NOT_FOUND);
+    }
+    binaryContentStorage.delete(id);
+    binaryContentRepository.deleteById(id);
+  }
+
 }

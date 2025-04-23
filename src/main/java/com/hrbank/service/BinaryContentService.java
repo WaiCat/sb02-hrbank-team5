@@ -9,4 +9,5 @@ public interface BinaryContentService {
 
   BinaryContentDto findById(Long id);
 
+  void delete(Long id);
 }
