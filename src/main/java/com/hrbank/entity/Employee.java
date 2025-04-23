@@ -67,6 +67,18 @@ public class Employee {
   }
 
   // 상태 변경 메서드
+  public void updateName(String name) {
+    this.name = name;
+  }
+
+  public void updateEmail(String email) {
+    this.email = email;
+  }
+
+  public void updateHireDate(LocalDate hireDate) {
+    this.hireDate = hireDate;
+  }
+
   public void changeDepartment(Department newDepartment) {
     this.department = newDepartment;
   }
