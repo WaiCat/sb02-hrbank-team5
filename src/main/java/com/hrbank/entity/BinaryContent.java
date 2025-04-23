@@ -7,6 +7,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
@@ -18,12 +19,15 @@ public class BinaryContent {
   @GeneratedValue
   private Long id;
 
+  @Setter
   @Column(name = "file_name", nullable = false)
   private String fileName;
 
+  @Setter
   @Column(name = "content_type", nullable = false)
   private String contentType;
 
+  @Setter
   @Column(nullable = false)
   private Long size;
 
