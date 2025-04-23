@@ -11,17 +11,11 @@ public interface DepartmentService {
     DepartmentDto updateDepartment(Long id, DepartmentUpdateRequest request);
     void deleteDepartment(Long id);
 
-    // 부서 목록 조회 (이름 정렬)
-    CursorPageResponseDepartmentDto getDepartmentsByNameSorting(
-            String nameKeyword,
-            String descriptionKeyword,
-            Long cursorId,
-            int limit);
-    // 부서 목록 조회 (설립일 정렬)
-
-    CursorPageResponseDepartmentDto getDepartmentsByEstablishedDateSorting(
-            String nameKeyword,
-            String descriptionKeyword,
-            Long cursorId,
-            int limit);
+    CursorPageResponseDepartmentDto getDepartments(
+            String nameOrDescription,
+            Long idAfter,
+            String cursor,
+            Integer size,
+            String sortField,
+            String sortDirection);
 }

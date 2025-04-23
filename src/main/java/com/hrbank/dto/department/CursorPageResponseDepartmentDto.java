@@ -4,6 +4,10 @@ import java.util.List;
 
 public record CursorPageResponseDepartmentDto(
         List<DepartmentDto> content,
-        Long lastId,
+        String nextCursor,
+        Long nextIdAfter,
+        int size,
+        Long totalElements,
         boolean hasNext
 ) {}
+

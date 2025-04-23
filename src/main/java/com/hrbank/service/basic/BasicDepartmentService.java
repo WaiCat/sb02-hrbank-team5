@@ -87,47 +87,63 @@ public class BasicDepartmentService implements DepartmentService {
 
     @Override
     @Transactional(readOnly = true)
-    public CursorPageResponseDepartmentDto getDepartmentsByNameSorting(
-            String nameKeyword, String descriptionKeyword, Long cursorId, int limit) {
+    public CursorPageResponseDepartmentDto getDepartments(
+            String nameOrDescription,
+            Long idAfter,
+            String cursor,
+            Integer size,
+            String sortField,
+            String sortDirection) {
 
-        int pageSize = limit > 0 ? limit : DEFAULT_PAGE_SIZE;
+        int pageSize = (size != null && size > 0) ? size : DEFAULT_PAGE_SIZE;
+        sortField = (sortField != null) ? sortField : "establishedDate";
+        sortDirection = (sortDirection != null) ? sortDirection : "asc";
 
-        List<Department> departments = departmentRepository
-                .findByNameContainingOrDescriptionContainingOrderByNameAsc(
-                        nameKeyword, descriptionKeyword, cursorId, pageSize + 1);
+        List<Department> departments;
 
-        return createPageResponse(departments, pageSize);
-    }
+        // sortField 값에 따라 적절한 메서드 호출
+        if ("name".equalsIgnoreCase(sortField)) {
+            departments = departmentRepository.findByNameOrDescriptionWithSorting(
+                    nameOrDescription, nameOrDescription, idAfter, pageSize + 1, "name", sortDirection);
+        } else {
+            departments = departmentRepository.findByNameOrDescriptionWithSorting(
+                    nameOrDescription, nameOrDescription, idAfter, pageSize + 1, "establishedDate", sortDirection);
+        }
 
-    @Override
-    @Transactional(readOnly = true)
-    public CursorPageResponseDepartmentDto getDepartmentsByEstablishedDateSorting(
-            String nameKeyword, String descriptionKeyword, Long cursorId, int limit) {
+        //전체 개수 조회
+        Long totalElements = departmentRepository.countByNameOrDescription(
+                nameOrDescription, nameOrDescription
+        );
 
-        int pageSize = limit > 0 ? limit : DEFAULT_PAGE_SIZE;
-
-        List<Department> departments = departmentRepository
-                .findByNameContainingOrDescriptionContainingOrderByEstablishedDateAsc(
-                        nameKeyword, descriptionKeyword, cursorId, pageSize + 1);
-
-        return createPageResponse(departments, pageSize);
+        return createPageResponse(departments, pageSize, cursor, idAfter, totalElements);
     }
 
     // 커서 기반 페이지네이션 응답 생성 헬퍼 메서드
-    private CursorPageResponseDepartmentDto createPageResponse(List<Department> departments, int pageSize) {
+    private CursorPageResponseDepartmentDto createPageResponse(
+            List<Department> departments, int pageSize, String cursor, Long idAfter, Long totalElements) {
         boolean hasNext = departments.size() > pageSize;
 
-        // 다음 페이지가 있으면 마지막 요소 제거
         if (hasNext) {
             departments = departments.subList(0, pageSize);
         }
 
-        List<DepartmentDto> departmentDtos = departments.stream()
-                .map(departmentMapper::toDto)
-                .toList();
+        List<DepartmentDto> departmentDtos = departmentMapper.toDtoList(departments);
 
-        Long lastId = !departments.isEmpty() ? departments.get(departments.size() - 1).getId() : null;
+        String nextCursor = null;
+        Long nextIdAfter = null;
+        if (hasNext && !departments.isEmpty()) {
+            Department lastDepartment = departments.get(departments.size() - 1);
+            nextCursor = String.valueOf(lastDepartment.getId());
+            nextIdAfter = lastDepartment.getId();
+        }
 
-        return new CursorPageResponseDepartmentDto(departmentDtos, lastId, hasNext);
+        return new CursorPageResponseDepartmentDto(
+                departmentDtos,
+                nextCursor,
+                nextIdAfter,
+                pageSize,
+                totalElements,
+                hasNext
+        );
     }
 }
