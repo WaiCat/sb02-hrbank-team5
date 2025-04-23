@@ -2,6 +2,7 @@ package com.hrbank.service.basic;
 
 import com.hrbank.dto.employeeChangeLog.ChangeLogDto;
 import com.hrbank.dto.employeeChangeLog.CursorPageResponseChangeLogDto;
+import com.hrbank.dto.employeeChangeLog.DiffDto;
 import com.hrbank.dto.employeeChangeLog.EmployeeChangeLogSearchRequest;
 import com.hrbank.entity.BinaryContent;
 import com.hrbank.entity.Department;
@@ -9,6 +10,8 @@ import com.hrbank.entity.Employee;
 import com.hrbank.entity.EmployeeChangeLog;
 import com.hrbank.entity.EmployeeChangeLogDetail;
 import com.hrbank.enums.EmployeeChangeLogType;
+import com.hrbank.exception.ErrorCode;
+import com.hrbank.exception.RestException;
 import com.hrbank.mapper.EmployeeChangeLogMapper;
 import com.hrbank.repository.EmployeeChangeLogRepository;
 import com.hrbank.repository.specification.EmployeeChangeLogSpecification;
@@ -17,7 +20,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -42,7 +44,9 @@ public class BasicEmployeeChangeLogService implements EmployeeChangeLogService {
     String employeeNumber;
 
     // 1. 변경 유형 판별
-    if (before == null && after != null) {
+    if (before == null && after == null) {
+      throw new RestException(ErrorCode.INVALID_CHANGE_LOG_DATA);
+    } else if (before == null && after != null) {
       type = EmployeeChangeLogType.CREATED;
       employeeNumber = after.getEmployeeNumber();
     } else if (before != null && after == null) {
@@ -98,7 +102,7 @@ public class BasicEmployeeChangeLogService implements EmployeeChangeLogService {
   }
 
   @Override
-  public Optional<EmployeeChangeLog> findWithDetailsById(UUID id) {
+  public Optional<EmployeeChangeLog> findWithDetailsById(Long id) {
     return changeLogRepository.findById(id); // 추후 fetch join 필요하면 custom query로 변경
   }
 
@@ -115,7 +119,7 @@ public class BasicEmployeeChangeLogService implements EmployeeChangeLogService {
       try {
         resolvedIdAfter = Long.parseLong(cursor);
       } catch (NumberFormatException e) {
-        throw new IllegalArgumentException("잘못된 커서 값입니다: " + cursor);
+        throw new RestException(ErrorCode.INVALID_CURSOR);
       }
     }
 
@@ -157,6 +161,14 @@ public class BasicEmployeeChangeLogService implements EmployeeChangeLogService {
         page.getTotalElements(),             // 전체 개수
         page.hasNext()                       // hasNext
     );
+  }
+
+  @Override
+  public List<DiffDto> getChangeLogDetails(Long changeLogId) {
+    EmployeeChangeLog log = changeLogRepository.findById(changeLogId)
+        .orElseThrow(() -> new RestException(ErrorCode.CHANGE_LOG_NOT_FOUND));
+
+    return changeLogMapper.toDiffDtoList(log.getDetails());
   }
 
 
