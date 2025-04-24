@@ -24,7 +24,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-@ConditionalOnProperty(name = "hrbank.storage.type", value = "local")
+@ConditionalOnProperty(name = "hrbank.storage.type", havingValue = "local")
 public class BinaryContentStorage {
   private final Path root;
 
