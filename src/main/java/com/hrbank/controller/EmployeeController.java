@@ -48,14 +48,15 @@ public class EmployeeController {
   @PostMapping
   public ResponseEntity<EmployeeDto> createEmployee(
       @RequestPart("employee") @Valid EmployeeCreateRequest request,
-      @RequestPart("profileImage") MultipartFile profileImage) {
-
-    return ResponseEntity.ok(employeeService.create(request, profileImage));
+      @RequestPart("profileImage") MultipartFile profileImage, HttpServletRequest httpRequest) {
+    String ip = httpRequest.getRemoteAddr();
+    return ResponseEntity.ok(employeeService.create(request, profileImage, ip));
   }
 
   @DeleteMapping("/{id}")
-  public ResponseEntity<Void> deleteEmployee(@PathVariable Long id) {
-    employeeService.delete(id);
+  public ResponseEntity<Void> deleteEmployee(@PathVariable Long id, HttpServletRequest httpRequest) {
+    String ip = httpRequest.getRemoteAddr();
+    employeeService.delete(id, ip);
     return ResponseEntity.noContent().build();
   }
 

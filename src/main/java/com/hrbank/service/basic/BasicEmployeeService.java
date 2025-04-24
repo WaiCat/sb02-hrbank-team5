@@ -118,7 +118,7 @@ public class BasicEmployeeService implements EmployeeService {
   // 직원 생성 메서드 (create)
   @Override
   @Transactional
-  public EmployeeDto create(EmployeeCreateRequest request, MultipartFile profileImage) {
+  public EmployeeDto create(EmployeeCreateRequest request, MultipartFile profileImage, String ip) {
     Department department = departmentRepository.findById(request.departmentId())
         .orElseThrow(() -> new RestException(ErrorCode.DEPARTMENT_NOT_FOUND));
 
@@ -146,28 +146,27 @@ public class BasicEmployeeService implements EmployeeService {
         employee.changeProfileImage(profileImageEntity);
     }
 
-    // 직원 저장
-    employeeRepository.save(employee);
+    Employee before = new Employee(
+        null, null, null, null, null, null, null
+    );
+    changeLogService.saveChangeLog(before, employee, request.memo(), ip);
 
     return employeeMapper.toDto(employee);
   }
 
-  // 사원번호 생성 함수
-  private String generateEmployeeNumber() {
-    return "EMP-" + LocalDate.now().getYear() + "-" + System.currentTimeMillis();
-  }
-
+  // 직원 삭제 메서드(delete)
   @Override
   @Transactional
-  public void delete(Long id) {
-    Employee employee = employeeRepository.findById(id)
-        .orElseThrow(() -> new RestException(ErrorCode.EMPLOYEE_NOT_FOUND));
+  public void delete(Long id, String ip) {
+    Employee employee = employeeRepository.findById(id).orElseThrow(() -> new RestException(ErrorCode.EMPLOYEE_NOT_FOUND));
+    Employee before = new Employee(employee.getName(), employee.getEmail(), employee.getEmployeeNumber(), employee.getDepartment(), employee.getPosition(), employee.getHireDate(), employee.getStatus());
 
     if (employee.getProfileImage() != null) {
       binaryContentService.delete(employee.getProfileImage().getId());
     }
 
     employeeRepository.delete(employee);
+    changeLogService.saveChangeLog(before, null, "직원 삭제", ip);
   }
 
   @Override
@@ -175,5 +174,10 @@ public class BasicEmployeeService implements EmployeeService {
     Employee employee = employeeRepository.findById(id)
         .orElseThrow(() -> new RestException(ErrorCode.EMPLOYEE_NOT_FOUND));
     return employeeMapper.toDto(employee);
+  }
+
+  // 사원번호 생성 함수
+  private String generateEmployeeNumber() {
+    return "EMP-" + LocalDate.now().getYear() + "-" + System.currentTimeMillis();
   }
 }

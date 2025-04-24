@@ -12,9 +12,9 @@ public interface EmployeeService {
 
   EmployeeDto update(Long id, EmployeeUpdateRequest request, String ip);
 
-  EmployeeDto create(EmployeeCreateRequest request, MultipartFile profileImage);
+  EmployeeDto create(EmployeeCreateRequest request, MultipartFile profileImage, String ip);
 
-  void delete(Long id);
+  void delete(Long id, String ip);
 
   EmployeeDto findById(Long id);
 }
