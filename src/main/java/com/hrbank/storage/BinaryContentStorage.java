@@ -81,6 +81,7 @@ public class BinaryContentStorage {
     }
   }
 
+  // 프로필 이미지 삭제
   public void delete(Long id){
     Path filePath = root.resolve(id.toString());
     try{
@@ -124,11 +125,5 @@ public class BinaryContentStorage {
         .header(HttpHeaders.CONTENT_DISPOSITION,
             "attachment; filename=\"" + contentDto.fileName() + "\"")
         .body(resource);
-  }
-
-  // 프로필 이미지 삭제
-  public void deleteProfileImage(Long id) throws IOException {
-    Path target = root.resolve(id.toString());
-    Files.deleteIfExists(target);
   }
 }

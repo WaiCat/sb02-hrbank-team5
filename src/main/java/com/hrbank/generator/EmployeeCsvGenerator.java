@@ -10,20 +10,25 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @RequiredArgsConstructor
 public class EmployeeCsvGenerator {
   private final EmployeeRepository employeeRepository;
 
-  // csv 파일에 전체 직원 데이터 넣음. (OOM 방지를 위해 페이징 사용)
+  // csv 파일에 전체 직원 데이터 넣음. (OOM 방지 & 대량 데이터을 생각하여 커서 사용)
+  @Transactional(
+      propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ, readOnly = true
+  )
   public File generate(BackupDto dto) throws IOException {
     DateTimeFormatter fmt = DateTimeFormatter
         .ofPattern("yyyyMMdd_HHmmss")
@@ -34,7 +39,7 @@ public class EmployeeCsvGenerator {
     File tempFile = File.createTempFile(
         "employee_backup_" + backupId + "_" + timestamp,".csv");
 
-    tempFile.deleteOnExit(); // JVM 종료 시 임시 파일 삭제(이중 대책임)
+    tempFile.deleteOnExit(); // JVM 종료 시 임시 파일 삭제(이중 대책)
 
     try (
         var writer = Files.newBufferedWriter(tempFile.toPath(), StandardCharsets.UTF_8);
@@ -42,13 +47,12 @@ public class EmployeeCsvGenerator {
             CSVPrinter(writer, CSVFormat.DEFAULT.withHeader(
             EmployeeCsvHeader.class))
     ) {
-      int page = 0;
-      Page<Employee> chunk;
+      final int chunkSize = 100;
+      Long lastId = 0L;
+      List<Employee> chunk;
       do {
-        chunk = employeeRepository.findAll(
-            PageRequest.of(page++, 100, Sort.by("id").ascending())
-        );
-        for (Employee e : chunk.getContent()) {
+        chunk = employeeRepository.findNextChunk(lastId, PageRequest.of(0, chunkSize));
+        for (Employee e : chunk) {
           printer.printRecord(
               e.getId(),
               e.getEmployeeNumber(),
@@ -59,8 +63,9 @@ public class EmployeeCsvGenerator {
               e.getHireDate().toString(),
               e.getStatus()
           );
+          lastId = e.getId();
         }
-      } while (chunk.hasContent());
+      } while (!chunk.isEmpty());
       printer.flush();
     }
     return tempFile;
