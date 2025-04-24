@@ -21,10 +21,10 @@ public class Department {
     @Column(length = 100, nullable = false, unique = true)
     private String name;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String description;
 
-    @Column(name = "established_date")
+    @Column(name = "established_date", nullable = false)
     private LocalDate establishedDate;
 
     // 단방향 1:N 관계 (Department -> Employee)
