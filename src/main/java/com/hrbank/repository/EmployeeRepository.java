@@ -1,8 +1,10 @@
 package com.hrbank.repository;
 
+import com.hrbank.dto.employee.EmployeeSearchCondition;
 import com.hrbank.entity.Employee;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -20,4 +22,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, Emplo
           + "order by e.id asc"
   )
   List<Employee> findNextChunk(@Param("lastId") Long lastId, Pageable pageable);
+
+  Page<Employee> findAllWithFilter(EmployeeSearchCondition condition, Pageable pageable);
 }
