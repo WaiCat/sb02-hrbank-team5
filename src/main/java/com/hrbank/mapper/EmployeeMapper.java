@@ -9,7 +9,7 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface EmployeeMapper {
   @Mapping(source = "department.name", target = "departmentName")
-  @Mapping(target = "profileImageId", expression = "java(employee.getProfileImageId())")
+  @Mapping(source = "profileImage.id", target = "profileImageId")
   EmployeeDto toDto(Employee employee);
   List<EmployeeDto> toDtoList(List<Employee> employees);
 }
