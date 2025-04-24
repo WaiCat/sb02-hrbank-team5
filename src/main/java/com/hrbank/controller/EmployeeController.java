@@ -13,12 +13,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -32,7 +34,7 @@ public class EmployeeController {
     return ResponseEntity.ok(employeeService.searchEmployees(condition));
   }
 
-  @PutMapping("/{id}")
+  @PatchMapping("/{id}")
   public ResponseEntity<EmployeeDto> updateEmployee(
       @PathVariable Long id,
       @RequestBody EmployeeUpdateRequest request,
@@ -42,16 +44,19 @@ public class EmployeeController {
     EmployeeDto updated = employeeService.update(id, request, ip);
     return ResponseEntity.ok(updated);
   }
-  
+
   @PostMapping
-  public ResponseEntity<EmployeeDto> createEmployee(@RequestBody @Valid EmployeeCreateRequest request) {
-    return ResponseEntity.ok(employeeService.create(request));
+  public ResponseEntity<EmployeeDto> createEmployee(
+      @RequestPart("employee") @Valid EmployeeCreateRequest request,
+      @RequestPart("profileImage") MultipartFile profileImage) {
+
+    return ResponseEntity.ok(employeeService.create(request, profileImage));
   }
 
   @DeleteMapping("/{id}")
-  public ResponseEntity<EmployeeDto> deleteEmployee(@PathVariable Long id) {
-    EmployeeDto deletedEmployee = employeeService.delete(id);
-    return ResponseEntity.ok(deletedEmployee);
+  public ResponseEntity<Void> deleteEmployee(@PathVariable Long id) {
+    employeeService.delete(id);
+    return ResponseEntity.noContent().build();
   }
 
   @GetMapping("/{id}")
