@@ -20,16 +20,16 @@ public interface DepartmentRepository extends JpaRepository<Department, Long>, J
     @Query("SELECT d FROM Department d WHERE d.name = :name AND d.id <> :id")
     Optional<Department> findByNameExcludingId(@Param("name") String name, @Param("id") Long id);
 
-    List<Department> findByNameOrDescriptionWithSorting(
-            @Param("name") String name,
-            @Param("description") String description,
-            @Param("lastId") Long lastId,
-            @Param("limit") int limit,
-            @Param("sortField") String sortField,
-            @Param("sortDirection") String sortDirection);
-
     // 부서에 소속된 직원이 있는지 확인
     @Query("SELECT COUNT(e) > 0 FROM Employee e WHERE e.department.id = :departmentId")
     boolean hasEmployees(@Param("departmentId") Long departmentId);
+
+    // N+1 문제 해결을 위한 각 부서별 직원 수 조회 메서드 추가
+    @Query("SELECT COUNT(e) FROM Employee e WHERE e.department.id = :departmentId")
+    int countEmployeesByDepartmentId(@Param("departmentId") Long departmentId);
+
+    // N+1 문제 해결을 위한 여러 부서의 직원 수를 한번에 조회하는 메서드 추가
+    @Query("SELECT d.id, COUNT(e) FROM Department d LEFT JOIN Employee e ON d.id = e.department.id WHERE d.id IN :departmentIds GROUP BY d.id")
+    List<Object[]> countEmployeesByDepartmentIds(@Param("departmentIds") List<Long> departmentIds);
 
 }

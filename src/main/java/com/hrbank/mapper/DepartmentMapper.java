@@ -5,11 +5,10 @@ import com.hrbank.entity.Department;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import java.util.List;
-
-@Mapper
+@Mapper(componentModel = "spring")
 public interface DepartmentMapper {
-    @Mapping(target = "employeeCount", expression = "java(department.getEmployees() != null ? department.getEmployees().size() : 0)")
-    DepartmentDto toDto(Department department);
-    List<DepartmentDto> toDtoList(List<Department> departments);
+    // N+1 문제 해결을 위해 직접 employeeCount를 주입받도록 수정
+    @Mapping(target = "employeeCount", source = "employeeCount")
+    DepartmentDto toDto(Department department, int employeeCount);
+
 }
