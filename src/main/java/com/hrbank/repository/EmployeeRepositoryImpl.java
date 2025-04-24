@@ -24,33 +24,47 @@ public class EmployeeRepositoryImpl implements EmployeeRepositoryCustom {
     String jpql = "SELECT e FROM Employee e LEFT JOIN e.department d WHERE 1=1";
 
     // 필터링 조건 추가
-    if (condition.getNameOrEmail() != null) {
-      jpql += " AND (e.name LIKE :nameOrEmail OR e.email LIKE :nameOrEmail)";
-    }
     if (condition.getDepartment() != null) {
-      jpql += " AND d.name = :department";
+      jpql += " AND d.name LIKE :department"; // 부분 일치로 변경
     }
-    if (condition.getStatus() != null) {
-      jpql += " AND e.status = :status";
+
+    if (condition.getPosition() != null) {
+      jpql += " AND e.position LIKE :position";  // 포지션 부분 일치
+    }
+
+    if (condition.getEmployeeNumber() != null) {
+      jpql += " AND e.employeeNumber LIKE :employeeNumber";  // 사원번호 부분 일치
+    }
+
+    if (condition.getHireDateFrom() != null) {
+      jpql += " AND e.hireDate >= :hireDateFrom"; // 입사일 이후
+    }
+    if (condition.getHireDateTo() != null) {
+      jpql += " AND e.hireDate <= :hireDateTo"; // 입사일 이전
     }
 
     // 쿼리 실행
     TypedQuery<Employee> query = entityManager.createQuery(jpql, Employee.class);
 
     // 파라미터 바인딩
-    if (condition.getNameOrEmail() != null) {
-      query.setParameter("nameOrEmail", "%" + condition.getNameOrEmail() + "%");
-    }
     if (condition.getDepartment() != null) {
-      query.setParameter("department", condition.getDepartment());
+      query.setParameter("department", "%" + condition.getDepartment() + "%");  // 부분 일치
     }
-    if (condition.getStatus() != null) {
-      query.setParameter("status", condition.getStatus());
+    if (condition.getPosition() != null) {
+      query.setParameter("position", "%" + condition.getPosition() + "%");  // 부분 일치
+    }
+    if (condition.getEmployeeNumber() != null) {
+      query.setParameter("employeeNumber", "%" + condition.getEmployeeNumber() + "%");  // 부분 일치
+    }
+    if (condition.getHireDateFrom() != null) {
+      query.setParameter("hireDateFrom", condition.getHireDateFrom());
+    }
+    if (condition.getHireDateTo() != null) {
+      query.setParameter("hireDateTo", condition.getHireDateTo());
     }
 
     // 페이징 처리
-    query.setFirstResult((int) pageable.getOffset());  // getOffset()을 사용하여 시작 위치 설정
-    query.setMaxResults(pageable.getPageSize());  // getPageSize()를 사용하여 한 페이지 크기 설정
+    query.setMaxResults(pageable.getPageSize());
 
     // 결과 목록
     List<Employee> employees = query.getResultList();
@@ -66,27 +80,39 @@ public class EmployeeRepositoryImpl implements EmployeeRepositoryCustom {
     String jpql = "SELECT COUNT(e) FROM Employee e LEFT JOIN e.department d WHERE 1=1";
 
     // 필터링 조건 추가
-    if (condition.getNameOrEmail() != null) {
-      jpql += " AND (e.name LIKE :nameOrEmail OR e.email LIKE :nameOrEmail)";
-    }
     if (condition.getDepartment() != null) {
-      jpql += " AND d.name = :department";
+      jpql += " AND d.name LIKE :department"; // 부서 필터 부분 일치
     }
-    if (condition.getStatus() != null) {
-      jpql += " AND e.status = :status";
+    if (condition.getPosition() != null) {
+      jpql += " AND e.position LIKE :position"; // 포지션 필터 부분 일치
+    }
+    if (condition.getEmployeeNumber() != null) {
+      jpql += " AND e.employeeNumber LIKE :employeeNumber"; // 사원번호 필터 부분 일치
+    }
+    if (condition.getHireDateFrom() != null) {
+      jpql += " AND e.hireDate >= :hireDateFrom"; // 입사일 이후 필터
+    }
+    if (condition.getHireDateTo() != null) {
+      jpql += " AND e.hireDate <= :hireDateTo"; // 입사일 이전 필터
     }
 
     TypedQuery<Long> query = entityManager.createQuery(jpql, Long.class);
 
     // 파라미터 바인딩
-    if (condition.getNameOrEmail() != null) {
-      query.setParameter("nameOrEmail", "%" + condition.getNameOrEmail() + "%");
-    }
     if (condition.getDepartment() != null) {
-      query.setParameter("department", condition.getDepartment());
+      query.setParameter("department", "%" + condition.getDepartment() + "%"); // 부서 필터 부분 일치
     }
-    if (condition.getStatus() != null) {
-      query.setParameter("status", condition.getStatus());
+    if (condition.getPosition() != null) {
+      query.setParameter("position", "%" + condition.getPosition() + "%"); // 포지션 필터 부분 일치
+    }
+    if (condition.getEmployeeNumber() != null) {
+      query.setParameter("employeeNumber", "%" + condition.getEmployeeNumber() + "%"); // 사원번호 필터 부분 일치
+    }
+    if (condition.getHireDateFrom() != null) {
+      query.setParameter("hireDateFrom", condition.getHireDateFrom());
+    }
+    if (condition.getHireDateTo() != null) {
+      query.setParameter("hireDateTo", condition.getHireDateTo());
     }
 
     // 총 직원 수 반환
