@@ -52,12 +52,15 @@ public class BasicEmployeeChangeLogService implements EmployeeChangeLogService {
     } else if (before == null && after != null) {
       type = EmployeeChangeLogType.CREATED;
       employeeNumber = after.getEmployeeNumber();
+      memo = (memo == null || memo.isBlank()) ? "신규 직원 등록" : memo;
     } else if (before != null && after == null) {
       type = EmployeeChangeLogType.DELETED;
       employeeNumber = before.getEmployeeNumber();
+      memo = (memo == null || memo.isBlank()) ? "직원 삭제" : memo;
     } else {
       type = EmployeeChangeLogType.UPDATED;
       employeeNumber = after.getEmployeeNumber();
+      memo = (memo == null || memo.isBlank()) ? "직원 정보 수정" : memo;
     }
 
     // 2. 로그 객체 생성
@@ -97,6 +100,7 @@ public class BasicEmployeeChangeLogService implements EmployeeChangeLogService {
   public boolean hasChangeSince(LocalDateTime at) {
     return changeLogRepository.existsByAtAfter(at);
   }
+
 
   @Override
   @Transactional(readOnly = true)
