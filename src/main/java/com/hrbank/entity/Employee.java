@@ -55,6 +55,10 @@ public class Employee {
   @JoinColumn(name = "profile_image_id")
   private BinaryContent profileImage;
 
+  public Long getProfileImageId() {
+    return this.profileImage != null ? this.profileImage.getId() : null;
+  }
+
   // 필수 필드를 초기화하는 생성자
   public Employee(String name, String email, String employeeNumber, Department department, String position, LocalDate hireDate, EmployeeStatus status) {
     this.name = name;
