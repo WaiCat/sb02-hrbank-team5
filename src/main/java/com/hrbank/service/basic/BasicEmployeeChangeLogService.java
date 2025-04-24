@@ -26,7 +26,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -38,6 +40,7 @@ public class BasicEmployeeChangeLogService implements EmployeeChangeLogService {
   // 직원 정보가 생성, 수정, 삭제 될 때 호출되어야 함
   // 변경점에 대한 로그를 생성하는 메서드
   @Override
+  @Transactional
   public void saveChangeLog(Employee before, Employee after, String memo, String ipAddress) {
 
     EmployeeChangeLogType type;
@@ -90,28 +93,13 @@ public class BasicEmployeeChangeLogService implements EmployeeChangeLogService {
   }
 
   @Override
-  public Page<EmployeeChangeLog> searchLogs(EmployeeChangeLogSearchRequest request, Pageable pageable) {
-    Specification<EmployeeChangeLog> spec = Specification.<EmployeeChangeLog>where(null)
-        .and(EmployeeChangeLogSpecification.employeeNumberContains(request.employeeNumber()))
-        .and(EmployeeChangeLogSpecification.memoContains(request.memo()))
-        .and(EmployeeChangeLogSpecification.ipAddressContains(request.ipAddress()))
-        .and(EmployeeChangeLogSpecification.typeEquals(request.type()))
-        .and(EmployeeChangeLogSpecification.atBetween(request.atFrom(), request.atTo()));
-
-    return changeLogRepository.findAll(spec, pageable);
-  }
-
-  @Override
-  public Optional<EmployeeChangeLog> findWithDetailsById(Long id) {
-    return changeLogRepository.findById(id); // 추후 fetch join 필요하면 custom query로 변경
-  }
-
-  @Override
+  @Transactional(readOnly = true)
   public boolean hasChangeSince(LocalDateTime at) {
     return changeLogRepository.existsByAtAfter(at);
   }
 
   @Override
+  @Transactional(readOnly = true)
   public CursorPageResponseChangeLogDto search(EmployeeChangeLogSearchRequest request, Long idAfter, String cursor, int size) {
     Long resolvedIdAfter = idAfter;
     // cursor가 있으면 우선적으로 사용
@@ -164,14 +152,16 @@ public class BasicEmployeeChangeLogService implements EmployeeChangeLogService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public List<DiffDto> getChangeLogDetails(Long changeLogId) {
-    EmployeeChangeLog log = changeLogRepository.findById(changeLogId)
+    EmployeeChangeLog log = changeLogRepository.findWithDetailsById(changeLogId)
         .orElseThrow(() -> new RestException(ErrorCode.CHANGE_LOG_NOT_FOUND));
 
     return changeLogMapper.toDiffDtoList(log.getDetails());
   }
 
   @Override
+  @Transactional(readOnly = true)
   public long countChangeLogs(LocalDateTime fromDate, LocalDateTime toDate) {
     LocalDateTime now = LocalDateTime.now();
 
@@ -179,7 +169,7 @@ public class BasicEmployeeChangeLogService implements EmployeeChangeLogService {
     LocalDateTime start = (fromDate != null) ? fromDate : now.minusDays(7);
     LocalDateTime end = (toDate != null) ? toDate : now;
 
-    if (fromDate.isAfter(toDate)) {
+    if (start.isAfter(end)) {
       throw new RestException(ErrorCode.INVALID_DATE_RANGE);
     }
 
