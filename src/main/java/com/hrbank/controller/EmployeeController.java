@@ -4,11 +4,14 @@ import com.hrbank.dto.employee.CursorPageResponseEmployeeDto;
 import com.hrbank.dto.employee.EmployeeCreateRequest;
 import com.hrbank.dto.employee.EmployeeDto;
 import com.hrbank.dto.employee.EmployeeSearchCondition;
+import com.hrbank.dto.employee.EmployeeTrendDto;
 import com.hrbank.dto.employee.EmployeeUpdateRequest;
 import com.hrbank.service.EmployeeService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -64,5 +67,10 @@ public class EmployeeController {
   public ResponseEntity<EmployeeDto> getEmployeeDetails(@PathVariable Long id) {
     EmployeeDto employeeDto = employeeService.findById(id);
     return ResponseEntity.ok(employeeDto);
+  }
+
+  @GetMapping("/stats/trend")
+  public Page<EmployeeTrendDto> getEmployeeTrends(EmployeeSearchCondition condition, Pageable pageable) {
+    return employeeService.findEmployeeTrends(condition, pageable);
   }
 }

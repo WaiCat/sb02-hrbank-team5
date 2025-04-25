@@ -6,6 +6,7 @@ import com.hrbank.dto.employee.CursorPageResponseEmployeeDto;
 import com.hrbank.dto.employee.EmployeeCreateRequest;
 import com.hrbank.dto.employee.EmployeeDto;
 import com.hrbank.dto.employee.EmployeeSearchCondition;
+import com.hrbank.dto.employee.EmployeeTrendDto;
 import com.hrbank.dto.employee.EmployeeUpdateRequest;
 import com.hrbank.entity.BinaryContent;
 import com.hrbank.entity.Department;
@@ -174,6 +175,12 @@ public class BasicEmployeeService implements EmployeeService {
     Employee employee = employeeRepository.findById(id)
         .orElseThrow(() -> new RestException(ErrorCode.EMPLOYEE_NOT_FOUND));
     return employeeMapper.toDto(employee);
+  }
+
+  @Override
+  public Page<EmployeeTrendDto> findEmployeeTrends(EmployeeSearchCondition condition,
+      Pageable pageable) {
+    return employeeRepository.findEmployeeTrends(condition, pageable);
   }
 
   // 사원번호 생성 함수

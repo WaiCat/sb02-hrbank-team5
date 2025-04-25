@@ -24,15 +24,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, Emplo
   )
   List<Employee> findNextChunk(@Param("lastId") Long lastId, Pageable pageable);
 
-  //EmployeeTrend 에서 사용하는 메서드
-  @Query("SELECT new com.hrbank.dto.employee.EmployeeTrendDto(" +
-      "FUNCTION('DATE', e.hireDate), " +
-      "COUNT(e.employeeNumber), " +
-      "(COUNT(e.employeeNumber) - COUNT(e.employeeNumber)) AS change, " +
-      "(COUNT(e.employeeNumber) - COUNT(e.employeeNumber)) * 100 / COUNT(e.employeeNumber) AS changeRate) " +
-      "FROM Employee e " +
-      "GROUP BY FUNCTION('DATE', e.hireDate) " +
-      "ORDER BY e.hireDate DESC")
   Page<EmployeeTrendDto> findEmployeeTrends(EmployeeSearchCondition condition, Pageable pageable);
 
   Page<Employee> findAllWithFilter(EmployeeSearchCondition condition, Pageable pageable);

@@ -22,4 +22,6 @@ public class EmployeeSearchCondition {
   private int page = 0; // 기본 페이지 번호
   private int size = 10; // 기본 페이지 크기
   private String sortField = "name"; // 기본 정렬 필드
+
+  private String groupByUnit = "month"; // Trend 단위 그룹화
 }
