@@ -45,6 +45,7 @@ public class EmployeeChangeLog {
   private String ipAddress;
 
   // 시간
+  @Column(nullable = false)
   private LocalDateTime at;
 
   // change_log_diffs, 변경 상세 정보 저장

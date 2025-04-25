@@ -28,7 +28,7 @@ public class EmployeeChangeLogDetail {
   @Setter(AccessLevel.PACKAGE) // or PROTECTED
   private EmployeeChangeLog changeLog;
 
-  @Column(name = "property_name")
+  @Column(name = "property_name", nullable = false)
   private String propertyName;
 
   @Column(columnDefinition = "TEXT")
