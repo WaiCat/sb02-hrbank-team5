@@ -4,6 +4,8 @@ import com.hrbank.dto.employee.EmployeeSearchCondition;
 import com.hrbank.entity.Employee;
 import java.util.List;
 import java.util.Optional;
+
+import com.hrbank.enums.EmployeeStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -24,4 +26,15 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, Emplo
   List<Employee> findNextChunk(@Param("lastId") Long lastId, Pageable pageable);
 
   Page<Employee> findAllWithFilter(EmployeeSearchCondition condition, Pageable pageable);
+
+  // 부서별 직원 수 집계 쿼리
+  @Query("SELECT d.name as groupKey, COUNT(e) as count FROM Employee e JOIN e.department d " +
+          "WHERE (:status IS NULL OR e.status = :status) GROUP BY d.name")
+  List<Object[]> countByDepartmentAndStatus(@Param("status") EmployeeStatus status);
+
+  // 직무별 직원 수 집계 쿼리
+  @Query("SELECT e.position as groupKey, COUNT(e) as count FROM Employee e " +
+          "WHERE (:status IS NULL OR e.status = :status) GROUP BY e.position")
+  List<Object[]> countByPositionAndStatus(@Param("status") EmployeeStatus status);
+
 }

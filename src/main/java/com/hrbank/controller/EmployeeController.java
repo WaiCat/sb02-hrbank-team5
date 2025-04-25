@@ -1,26 +1,16 @@
 package com.hrbank.controller;
 
-import com.hrbank.dto.employee.CursorPageResponseEmployeeDto;
-import com.hrbank.dto.employee.EmployeeCreateRequest;
-import com.hrbank.dto.employee.EmployeeDto;
-import com.hrbank.dto.employee.EmployeeSearchCondition;
-import com.hrbank.dto.employee.EmployeeUpdateRequest;
+import com.hrbank.dto.employee.*;
 import com.hrbank.service.EmployeeService;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -64,5 +54,14 @@ public class EmployeeController {
   public ResponseEntity<EmployeeDto> getEmployeeDetails(@PathVariable Long id) {
     EmployeeDto employeeDto = employeeService.findById(id);
     return ResponseEntity.ok(employeeDto);
+  }
+
+  @GetMapping("/stats/distribution")
+  @Operation(summary = "직원 분포 조회")
+  public List<EmployeeDistributionDto> getEmployeeDistribution(
+          @RequestParam(defaultValue = "department") String groupBy,
+          @RequestParam(defaultValue = "ACTIVE") String status
+  ) {
+    return employeeService.getEmployeeDistribution(groupBy, status);
   }
 }
