@@ -20,15 +20,14 @@ public class BinaryContent {
   private Long id;
 
   @Setter
-  @Column(name = "file_name", nullable = false)
+  @Column(name = "file_name")
   private String fileName;
 
   @Setter
-  @Column(name = "content_type", nullable = false)
+  @Column(name = "content_type")
   private String contentType;
 
   @Setter
-  @Column(nullable = false)
   private Long size;
 
   public BinaryContent(String fileName, String contentType, Long size) {

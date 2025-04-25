@@ -267,7 +267,8 @@ public class BasicBackupService implements BackupService {
     Long contentId = binaryContent.getId();
 
     try{
-      binaryContentStorage.putErrorLog(contentId, trace);
+      Long size = binaryContentStorage.putErrorLog(contentId, trace);
+      binaryContent.setSize(size);
     }catch (IOException ex) {
       throw new RestException(ErrorCode.FILE_WRITE_ERROR);
     }

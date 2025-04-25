@@ -63,9 +63,10 @@ public class BinaryContentStorage {
   }
 
   // log 파일 저장
-  public void putErrorLog(Long id, String log) throws IOException {
+  public Long putErrorLog(Long id, String log) throws IOException {
     Path logPath = root.resolve(id + ".log");
     Files.writeString(logPath, log, StandardCharsets.UTF_8);
+    return Files.size(logPath);
   }
 
   // id로 실제 파일 찾기
