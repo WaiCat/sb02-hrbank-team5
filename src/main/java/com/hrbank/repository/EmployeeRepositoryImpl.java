@@ -79,10 +79,10 @@ public class EmployeeRepositoryImpl implements EmployeeRepositoryCustom {
   @Override
   public Page<EmployeeTrendDto> findEmployeeTrends(EmployeeSearchCondition condition, Pageable pageable) {
     // 1. 그룹화 단위 및 기간 기본값 처리
-    String groupByUnit = (condition.getGroupByUnit() == null) ? "month" : condition.getGroupByUnit();
+    String groupByUnit = (condition.getUnit() == null) ? "month" : condition.getUnit();
     LocalDate now = LocalDate.now();
-    LocalDate from = condition.getHireDateFrom();
-    LocalDate to = condition.getHireDateTo();
+    LocalDate from = condition.getFrom();
+    LocalDate to = condition.getTo();
 
     if (from == null && to == null && "month".equals(groupByUnit)) {
       from = now.minusMonths(11).withDayOfMonth(1); // 최근 12개월의 첫날

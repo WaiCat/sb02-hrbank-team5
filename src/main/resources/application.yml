@@ -12,7 +12,7 @@ spring:
     password: hrbank1234
   jpa:
     hibernate:
-      ddl-auto: validate        # 운영은 validate, 개발 초기에는 update/create 사용 가능
+      ddl-auto: update        # 운영은 validate, 개발 초기에는 update/create 사용 가능
     properties:
       hibernate:
         format_sql: true
