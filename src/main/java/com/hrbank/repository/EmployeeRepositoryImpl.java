@@ -1,6 +1,7 @@
 package com.hrbank.repository;
 
 import com.hrbank.dto.employee.EmployeeSearchCondition;
+import com.hrbank.dto.employee.EmployeeTrendDto;
 import com.hrbank.entity.Employee;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
@@ -73,6 +74,29 @@ public class EmployeeRepositoryImpl implements EmployeeRepositoryCustom {
     long totalElements = getTotalElements(condition);  // 총 직원 수를 구하는 별도 메서드 호출
 
     return new PageImpl<>(employees, pageable, totalElements);
+  }
+
+  @Override
+  public Page<EmployeeTrendDto> findEmployeeTrends(EmployeeSearchCondition condition,
+      Pageable pageable) {
+    String jpql = "SELECT new com.hrbank.dto.employee.EmployeeTrendDto(" +
+        "FUNCTION('DATE', e.hireDate), " +
+        "COUNT(e.employeeNumber), " +
+        "(COUNT(e.employeeNumber) - COUNT(e.employeeNumber)) AS change, " +
+        "(COUNT(e.employeeNumber) - COUNT(e.employeeNumber)) * 100 / COUNT(e.employeeNumber) AS changeRate) " +
+        "FROM Employee e " +
+        "GROUP BY FUNCTION('DATE', e.hireDate) " +
+        "ORDER BY e.hireDate DESC";
+
+    TypedQuery<EmployeeTrendDto> query = entityManager.createQuery(jpql, EmployeeTrendDto.class);
+
+    // 페이징 처리
+    query.setFirstResult((int) pageable.getOffset());
+    query.setMaxResults(pageable.getPageSize());
+
+    List<EmployeeTrendDto> result = query.getResultList();
+    // 트렌드 데이터를 조회하고 결과 반환
+    return new PageImpl<>(query.getResultList(), pageable, query.getResultList().size());
   }
 
   // 전체 결과 수를 계산하는 별도 메서드 (필터링된 직원 수 계산)
