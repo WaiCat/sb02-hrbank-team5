@@ -8,7 +8,10 @@ import com.hrbank.dto.employee.EmployeeTrendDto;
 import com.hrbank.dto.employee.EmployeeUpdateRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import com.hrbank.dto.employee.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 public interface EmployeeService {
   CursorPageResponseEmployeeDto searchEmployees(EmployeeSearchCondition condition);
@@ -22,4 +25,6 @@ public interface EmployeeService {
   EmployeeDto findById(Long id);
 
   Page<EmployeeTrendDto> findEmployeeTrends(EmployeeSearchCondition condition, Pageable pageable);
+
+  List<EmployeeDistributionDto> getEmployeeDistribution(String groupBy, String status);
 }

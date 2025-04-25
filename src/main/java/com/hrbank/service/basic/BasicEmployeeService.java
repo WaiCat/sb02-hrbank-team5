@@ -8,6 +8,7 @@ import com.hrbank.dto.employee.EmployeeDto;
 import com.hrbank.dto.employee.EmployeeSearchCondition;
 import com.hrbank.dto.employee.EmployeeTrendDto;
 import com.hrbank.dto.employee.EmployeeUpdateRequest;
+import com.hrbank.dto.employee.*;
 import com.hrbank.entity.BinaryContent;
 import com.hrbank.entity.Department;
 import com.hrbank.entity.Employee;
@@ -24,6 +25,9 @@ import com.hrbank.service.EmployeeService;
 import jakarta.transaction.Transactional;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -186,5 +190,36 @@ public class BasicEmployeeService implements EmployeeService {
   // 사원번호 생성 함수
   private String generateEmployeeNumber() {
     return "EMP-" + LocalDate.now().getYear() + "-" + System.currentTimeMillis();
+  }
+
+  @Override
+  public List<EmployeeDistributionDto> getEmployeeDistribution(String groupBy, String status) {
+
+    EmployeeStatus employeeStatus = null;
+    if (status != null && !status.isEmpty()) {
+      employeeStatus = EmployeeStatus.valueOf(status);
+    }
+
+    List<Object[]> distributionData;
+    if ("department".equals(groupBy)) {
+      distributionData = employeeRepository.countByDepartmentAndStatus(employeeStatus);
+    } else if ("position".equals(groupBy)) {
+      distributionData = employeeRepository.countByPositionAndStatus(employeeStatus);
+    } else {
+      throw new IllegalArgumentException("지원하지 않는 그룹화 기준: " + groupBy);
+    }
+
+    long totalCount = distributionData.stream()
+            .mapToLong(row -> (Long)row[1])
+            .sum();
+
+    return distributionData.stream()
+            .map(row -> {
+              String key = (String)row[0];
+              Long count = (Long)row[1];
+              double percentage = totalCount > 0 ? (count * 100.0) / totalCount : 0.0;
+              return new EmployeeDistributionDto(key, count, percentage);
+            })
+            .collect(Collectors.toList());
   }
 }
