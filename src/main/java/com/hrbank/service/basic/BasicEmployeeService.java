@@ -22,7 +22,6 @@ import com.hrbank.repository.EmployeeRepository;
 import com.hrbank.service.BinaryContentService;
 import com.hrbank.service.EmployeeChangeLogService;
 import com.hrbank.service.EmployeeService;
-import jakarta.transaction.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,6 +31,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
@@ -47,6 +47,7 @@ public class BasicEmployeeService implements EmployeeService {
 
 
   @Override
+  @Transactional(readOnly = true)
   public CursorPageResponseEmployeeDto searchEmployees(EmployeeSearchCondition condition) {
     // 페이지네이션 처리
     Pageable pageable = PageRequest.of(condition.getPage(), condition.getSize(), Sort.by(condition.getSortField()));
@@ -171,7 +172,7 @@ public class BasicEmployeeService implements EmployeeService {
 
   @Override
   public EmployeeDto findById(Long id) {
-    Employee employee = employeeRepository.findById(id)
+    Employee employee = employeeRepository.findByIdWithDepartment(id)
         .orElseThrow(() -> new RestException(ErrorCode.EMPLOYEE_NOT_FOUND));
     return employeeMapper.toDto(employee);
   }

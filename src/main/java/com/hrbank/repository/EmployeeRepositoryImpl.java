@@ -22,7 +22,7 @@ public class EmployeeRepositoryImpl implements EmployeeRepositoryCustom {
   @Override
   public Page<Employee> findAllWithFilter(EmployeeSearchCondition condition, Pageable pageable) {
     // 기본적인 쿼리 시작
-    String jpql = "SELECT e FROM Employee e LEFT JOIN e.department d WHERE 1=1";
+    String jpql = "SELECT e FROM Employee e JOIN FETCH e.department d WHERE 1=1";
 
     // 필터링 조건 추가
     if (condition.getDepartment() != null) {
