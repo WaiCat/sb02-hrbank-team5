@@ -149,10 +149,7 @@ public class BasicEmployeeService implements EmployeeService {
         employee.changeProfileImage(profileImageEntity);
     }
 
-    Employee before = new Employee(
-        null, null, null, null, null, null, null
-    );
-    changeLogService.saveChangeLog(before, employee, request.memo(), ip);
+    changeLogService.saveChangeLog(null, employee, request.memo(), ip);
 
     return employeeMapper.toDto(employee);
   }
