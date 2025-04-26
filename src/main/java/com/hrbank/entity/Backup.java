@@ -35,7 +35,7 @@ public class Backup {
   @Column(name = "started_at", nullable = false)
   private LocalDateTime startedAt;
 
-  @Column(name = "ended_at", nullable = false)
+  @Column(name = "ended_at")
   private LocalDateTime endedAt;
 
   @Enumerated(EnumType.STRING)
