@@ -45,7 +45,7 @@ public class BasicBinaryContentService implements BinaryContentService {
   @Override
   public BinaryContentDto findById(Long id){
     BinaryContent binaryContent = binaryContentRepository.findById(id)
-        .orElseThrow(() -> new RestException(ErrorCode.PROFILE_IMAGE_NOT_FOUND));
+        .orElseThrow(() -> new RestException(ErrorCode.BINARY_CONTENT_NOT_FOUND));
     return binaryContentMapper.toDto(binaryContent);
   }
 

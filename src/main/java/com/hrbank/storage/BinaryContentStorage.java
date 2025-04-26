@@ -70,8 +70,8 @@ public class BinaryContentStorage {
   }
 
   // id로 실제 파일 찾기
-  public InputStream get(Long id){
-    Path filePath = root.resolve(id.toString());
+  public InputStream get(Long id, String subtype){
+    Path filePath = root.resolve(id.toString() + "." + subtype);
     if (!Files.exists(filePath)) {
       throw new RestException(ErrorCode.FILE_NOT_FOUND);
     }
@@ -104,10 +104,14 @@ public class BinaryContentStorage {
 
   // 파일 다운로드 - .csv, .log 컨텐트 타입 인식되도록 함.
   public ResponseEntity<Resource> download(BinaryContentDto contentDto) {
-    InputStream downloadData = get(contentDto.id());
+    String contentTypeStr = contentDto.contentType();
+    String subtype = "";
+    if (contentTypeStr != null) {
+      subtype = contentTypeStr.substring(contentTypeStr.indexOf('/') + 1);
+    }
+    InputStream downloadData = get(contentDto.id(), subtype);
     Resource resource = new InputStreamResource(downloadData);
 
-    String contentTypeStr = contentDto.contentType();
     MediaType mediaType;
 
     if(contentTypeStr != null && !contentTypeStr.isBlank()) {

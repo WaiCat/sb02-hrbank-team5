@@ -27,6 +27,7 @@ public enum ErrorCode {
   FILE_ALREADY_EXIST(HttpStatus.CONFLICT, "파일이 이미 존재합니다."),
   FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "파일이 존재하지 않습니다."),
   FILE_DELETE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "파일 삭제 중 오류가 발생했습니다."),
+  BINARY_CONTENT_NOT_FOUND(HttpStatus.NOT_FOUND, "바이너리컨텐트를 찾을 수 없습니다."),
 
   CHANGE_LOG_NOT_FOUND(HttpStatus.NOT_FOUND, "해당하는 변경 이력이 없습니다."),
   INVALID_CURSOR(HttpStatus.BAD_REQUEST, "커서 값이 올바르지 않습니다."),
