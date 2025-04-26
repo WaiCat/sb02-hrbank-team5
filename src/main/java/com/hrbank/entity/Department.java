@@ -28,11 +28,6 @@ public class Department {
     @Column(name = "established_date", nullable = false)
     private LocalDate establishedDate;
 
-    // 단방향 1:N 관계 (Department -> Employee)
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "department_id")
-    private List<Employee> employees= new ArrayList<>();
-
     public Department(String name, String description, LocalDate establishedDate) {
         this.name = name;
         this.description = description;

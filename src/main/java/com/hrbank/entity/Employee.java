@@ -38,7 +38,7 @@ public class Employee {
   private String employeeNumber;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "department_id")
+  @JoinColumn(name = "department_id", nullable = false)
   private Department department;
 
   @Column(nullable = false)
@@ -100,15 +100,6 @@ public class Employee {
   }
 
   public void changeDepartment(Department newDepartment) {
-    //기존 부서에서 제거
-    if (this.department != null) {
-      this.department.getEmployees().remove(this);
-    }
-
-    // 새 부서 설정
-    if (newDepartment != null) {
-      newDepartment.getEmployees().add(this);
-    }
     this.department = newDepartment;
   }
 
