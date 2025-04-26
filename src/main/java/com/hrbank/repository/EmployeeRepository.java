@@ -13,7 +13,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface EmployeeRepository extends JpaRepository<Employee, Long>, EmployeeRepositoryCustom {
+public interface EmployeeRepository extends JpaRepository<Employee, Long>,
+    EmployeeRepositoryCustom {
   Optional<Employee> findByEmail(String email);
 
   // EmployeeCsvGenerator에서 사용하는 메서드
@@ -26,7 +27,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, Emplo
   )
   List<Employee> findNextChunk(@Param("lastId") Long lastId, Pageable pageable);
 
-  Page<EmployeeTrendDto> findEmployeeTrends(EmployeeSearchCondition condition, Pageable pageable);
+  List<EmployeeTrendDto> findEmployeeTrends(LocalDate from, LocalDate to, String unit);
 
   Page<Employee> findAllWithFilter(EmployeeSearchCondition condition, Pageable pageable);
   @Query("SELECT COUNT(e) FROM Employee e " +

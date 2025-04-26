@@ -5,13 +5,11 @@ import com.hrbank.dto.employee.EmployeeCreateRequest;
 import com.hrbank.dto.employee.EmployeeDistributionDto;
 import com.hrbank.dto.employee.EmployeeDto;
 import com.hrbank.dto.employee.EmployeeSearchCondition;
+import com.hrbank.dto.employee.EmployeeTrendDto;
 import com.hrbank.dto.employee.EmployeeUpdateRequest;
 import java.time.LocalDate;
-import com.hrbank.dto.employee.EmployeeTrendDto;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface EmployeeService {
   CursorPageResponseEmployeeDto searchEmployees(EmployeeSearchCondition condition);
@@ -24,7 +22,7 @@ public interface EmployeeService {
 
   EmployeeDto findById(Long id);
 
-  Page<EmployeeTrendDto> findEmployeeTrends(EmployeeSearchCondition condition, Pageable pageable);
+  List<EmployeeTrendDto> findEmployeeTrends(LocalDate from, LocalDate to, String unit);
 
   long getEmployeeCount(String status, LocalDate fromDate, LocalDate toDate);
 

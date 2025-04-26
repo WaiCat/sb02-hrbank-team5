@@ -14,8 +14,6 @@ import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.http.ResponseEntity;
@@ -93,8 +91,12 @@ public class EmployeeController {
 
   @Operation(summary = "직원 수 추이 조회")
   @GetMapping("/stats/trend")
-  public Page<EmployeeTrendDto> getEmployeeTrends(EmployeeSearchCondition condition, Pageable pageable) {
-    return employeeService.findEmployeeTrends(condition, pageable);
+  public ResponseEntity<List<EmployeeTrendDto>> getEmployeeTrends(
+      @RequestParam(value = "from", required = false) LocalDate from,
+      @RequestParam(value = "to", required = false) LocalDate to,
+      @RequestParam(value = "unit", defaultValue = "month") String unit
+      ) {
+    return ResponseEntity.ok(employeeService.findEmployeeTrends(from, to, unit));
   }
 
   @GetMapping("/stats/distribution")

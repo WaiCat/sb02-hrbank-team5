@@ -177,9 +177,8 @@ public class BasicEmployeeService implements EmployeeService {
   }
 
   @Override
-  public Page<EmployeeTrendDto> findEmployeeTrends(EmployeeSearchCondition condition,
-      Pageable pageable) {
-    return employeeRepository.findEmployeeTrends(condition, pageable);
+  public List<EmployeeTrendDto> findEmployeeTrends(LocalDate from, LocalDate to, String unit) {
+    return employeeRepository.findEmployeeTrends(from, to, unit);
   }
 
   @Override

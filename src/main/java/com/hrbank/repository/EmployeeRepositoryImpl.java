@@ -77,41 +77,42 @@ public class EmployeeRepositoryImpl implements EmployeeRepositoryCustom {
   }
 
   @Override
-  public Page<EmployeeTrendDto> findEmployeeTrends(EmployeeSearchCondition condition, Pageable pageable) {
+  public List<EmployeeTrendDto> findEmployeeTrends(LocalDate from, LocalDate to, String unit) {
     // 1. 그룹화 단위 및 기간 기본값 처리
-    String groupByUnit = (condition.getUnit() == null) ? "month" : condition.getUnit();
+    String groupByUnit = (unit == null) ? "month" : unit;
     LocalDate now = LocalDate.now();
-    LocalDate from = condition.getFrom();
-    LocalDate to = condition.getTo();
 
     if (from == null && to == null && "month".equals(groupByUnit)) {
       from = now.minusMonths(12).withDayOfMonth(1); // 최근 12개월의 첫날
       to = now.withDayOfMonth(now.lengthOfMonth());  // 이번달 마지막날
     }
 
-    // 2. H2용 날짜 포맷 (FORMATDATETIME)
+    // 2. 날짜 포맷
     String dateFormat;
     switch (groupByUnit) {
-      case "year": dateFormat = "FORMATDATETIME(e.hireDate, 'yyyy')"; break;
-      case "month": dateFormat = "FORMATDATETIME(e.hireDate, 'yyyy-MM')"; break;
+      case "year": dateFormat = "TO_CHAR(e.hireDate, 'yyyy')"; break;
+      case "month": dateFormat = "TO_CHAR(e.hireDate, 'yyyy-MM')"; break;
       case "quarter":
-        dateFormat = "CONCAT(FORMATDATETIME(e.hireDate, 'yyyy'), '-Q', " +
+        dateFormat = "CONCAT(TO_CHAR(e.hireDate, 'yyyy'), '-Q', " +
             "(CASE WHEN EXTRACT(MONTH FROM e.hireDate) BETWEEN 1 AND 3 THEN 1 " +
             "WHEN EXTRACT(MONTH FROM e.hireDate) BETWEEN 4 AND 6 THEN 2 " +
             "WHEN EXTRACT(MONTH FROM e.hireDate) BETWEEN 7 AND 9 THEN 3 " +
             "ELSE 4 END))";
         break;
       case "week":
-        dateFormat = "CONCAT(FORMATDATETIME(e.hireDate, 'yyyy'), '-W', EXTRACT(WEEK FROM e.hireDate))";
+        dateFormat = "CONCAT(TO_CHAR(e.hireDate, 'yyyy'), '-W', EXTRACT(WEEK FROM e.hireDate))";
         break;
-      default: dateFormat = "FORMATDATETIME(e.hireDate, 'yyyy-MM-dd')"; // day
+      default: dateFormat = "TO_CHAR(e.hireDate, 'yyyy-MM-dd')"; // day
     }
 
     // 3. JPQL 동적 생성
     String jpql = "SELECT new com.hrbank.dto.employee.EmployeeTrendDto(" +
         dateFormat + ", " +
-        "COUNT(e.id), 0L, 0.0) " +
+        "COUNT(e.id)) " +
         "FROM Employee e WHERE e.hireDate IS NOT NULL ";
+
+    //String jpql = "SELECT new com.hrbank.dto.employee.EmployeeTrendDto('2025-04', COUNT(e.id)) FROM Employee e WHERE e.hireDate IS NOT NULL ";
+
 
     if (from != null) jpql += "AND e.hireDate >= :from ";
     if (to != null) jpql += "AND e.hireDate <= :to ";
@@ -121,9 +122,9 @@ public class EmployeeRepositoryImpl implements EmployeeRepositoryCustom {
     TypedQuery<EmployeeTrendDto> query = entityManager.createQuery(jpql, EmployeeTrendDto.class);
     if (from != null) query.setParameter("from", from);
     if (to != null) query.setParameter("to", to);
-
-    query.setFirstResult((int) pageable.getOffset());
-    query.setMaxResults(pageable.getPageSize());
+//
+//    query.setFirstResult((int) pageable.getOffset());
+//    query.setMaxResults(pageable.getPageSize());
 
     List<EmployeeTrendDto> trends = query.getResultList();
 
@@ -137,17 +138,7 @@ public class EmployeeRepositoryImpl implements EmployeeRepositoryCustom {
       current.setChangeRate(changeRate);
     }
 
-    // 5. 전체 개수 구하기
-    String countJpql = "SELECT COUNT(DISTINCT " + dateFormat + ") FROM Employee e WHERE e.hireDate IS NOT NULL ";
-    if (from != null) countJpql += "AND e.hireDate >= :from ";
-    if (to != null) countJpql += "AND e.hireDate <= :to ";
-
-    TypedQuery<Long> countQuery = entityManager.createQuery(countJpql, Long.class);
-    if (from != null) countQuery.setParameter("from", from);
-    if (to != null) countQuery.setParameter("to", to);
-    Long totalElements = countQuery.getSingleResult();
-
-    return new PageImpl<>(trends, pageable, totalElements);
+    return trends;
   }
 
   // 전체 결과 수를 계산하는 별도 메서드 (필터링된 직원 수 계산)
