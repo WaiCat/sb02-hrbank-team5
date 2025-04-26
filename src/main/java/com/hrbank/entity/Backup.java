@@ -6,7 +6,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
@@ -26,7 +25,7 @@ public class Backup {
   public Backup() {  }
 
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @GeneratedValue
   private Long id;
 
   @Column(nullable = false)
@@ -35,7 +34,7 @@ public class Backup {
   @Column(name = "started_at", nullable = false)
   private LocalDateTime startedAt;
 
-  @Column(name = "ended_at")
+  @Column(name = "ended_at", nullable = false)
   private LocalDateTime endedAt;
 
   @Enumerated(EnumType.STRING)

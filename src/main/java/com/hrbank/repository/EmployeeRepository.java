@@ -1,11 +1,12 @@
 package com.hrbank.repository;
 
 import com.hrbank.dto.employee.EmployeeSearchCondition;
+import com.hrbank.dto.employee.EmployeeTrendDto;
 import com.hrbank.entity.Employee;
-import com.hrbank.enums.EmployeeStatus;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+
+import com.hrbank.enums.EmployeeStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -25,8 +26,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, Emplo
   )
   List<Employee> findNextChunk(@Param("lastId") Long lastId, Pageable pageable);
 
-  Page<Employee> findAllWithFilter(EmployeeSearchCondition condition, Pageable pageable);
+  Page<EmployeeTrendDto> findEmployeeTrends(EmployeeSearchCondition condition, Pageable pageable);
 
+  Page<Employee> findAllWithFilter(EmployeeSearchCondition condition, Pageable pageable);
   @Query("SELECT COUNT(e) FROM Employee e " +
       "WHERE e.status = :status " +
       "AND e.hireDate BETWEEN :fromDate AND :toDate")
@@ -48,7 +50,5 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, Emplo
   @Query("SELECT e.position as groupKey, COUNT(e) as count FROM Employee e " +
           "WHERE (:status IS NULL OR e.status = :status) GROUP BY e.position")
   List<Object[]> countByPositionAndStatus(@Param("status") EmployeeStatus status);
-
-  boolean existsBy();
 
 }

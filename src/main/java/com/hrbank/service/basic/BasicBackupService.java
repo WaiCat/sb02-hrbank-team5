@@ -14,7 +14,6 @@ import com.hrbank.mapper.BackupMapper;
 import com.hrbank.repository.BackupRepository;
 import com.hrbank.repository.BinaryContentRepository;
 import com.hrbank.repository.EmployeeChangeLogRepository;
-import com.hrbank.repository.EmployeeRepository;
 import com.hrbank.service.BackupService;
 import com.hrbank.storage.BinaryContentStorage;
 import java.io.File;
@@ -28,7 +27,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -44,7 +42,6 @@ public class BasicBackupService implements BackupService {
   private final BackupRepository backupRepository;
   private final BackupMapper backupMapper;
   private final EmployeeChangeLogRepository employeeChangeLogRepository;
-  private final EmployeeRepository employeeRepository;
   private final BinaryContentRepository binaryContentRepository;
   private final BinaryContentStorage binaryContentStorage;
   private final EmployeeCsvGenerator employeeCsvGenerator;
@@ -60,7 +57,7 @@ public class BasicBackupService implements BackupService {
         .filter(backup -> status == null || backup.getStatus() == status)
         .filter(backup -> from == null || backup.getStartedAt().isAfter(from))
         .filter(backup -> to == null || backup.getStartedAt().isBefore(to))
-        .collect(Collectors.toList());
+        .toList();
 
     // 정렬 기준 설정
     Comparator<Backup> comparator = "endedAt".equalsIgnoreCase(sortField)
@@ -112,7 +109,9 @@ public class BasicBackupService implements BackupService {
   public BackupDto findLatestBackupByStatus(BackupStatus status) {
     return backupRepository.findTopByStatusOrderByEndedAtDesc(status)
         .map(backupMapper::toDto)
-        .orElse(null);
+        .orElseThrow(() ->
+            new RestException(ErrorCode.BACKUP_LATEST_NOT_FOUND)
+        );
   }
 
 
@@ -159,14 +158,8 @@ public class BasicBackupService implements BackupService {
   }
 
   private boolean isBackupRequired() {
-    // 직원이 없으면 백업할 필요 X
-    if(!employeeRepository.existsBy()){
-      return false;
-    }
-
     Optional<Backup> lastCompletedBackup = backupRepository.findTopByStatusOrderByEndedAtDesc(
         BackupStatus.COMPLETED);
-
     if(lastCompletedBackup.isEmpty()){
       return true;
     }
