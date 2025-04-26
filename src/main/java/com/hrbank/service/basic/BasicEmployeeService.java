@@ -9,6 +9,7 @@ import com.hrbank.dto.employee.EmployeeSearchCondition;
 import com.hrbank.dto.employee.EmployeeTrendDto;
 import com.hrbank.dto.employee.EmployeeUpdateRequest;
 import com.hrbank.dto.employee.*;
+import com.hrbank.dto.employee.EmployeeDistributionDto;
 import com.hrbank.entity.BinaryContent;
 import com.hrbank.entity.Department;
 import com.hrbank.entity.Employee;
@@ -25,9 +26,7 @@ import com.hrbank.service.EmployeeService;
 import jakarta.transaction.Transactional;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -185,6 +184,13 @@ public class BasicEmployeeService implements EmployeeService {
   public Page<EmployeeTrendDto> findEmployeeTrends(EmployeeSearchCondition condition,
       Pageable pageable) {
     return employeeRepository.findEmployeeTrends(condition, pageable);
+
+  @Override
+  public long getEmployeeCount(String status, LocalDate fromDate, LocalDate toDate) {
+    if (toDate == null) {
+      toDate = LocalDate.now();
+    }
+    return employeeRepository.countByStatusAndHireDate(status, fromDate, toDate);
   }
 
   // 사원번호 생성 함수

@@ -7,18 +7,31 @@ import com.hrbank.dto.employee.EmployeeSearchCondition;
 import com.hrbank.dto.employee.EmployeeTrendDto;
 import com.hrbank.dto.employee.EmployeeUpdateRequest;
 import com.hrbank.dto.employee.*;
+import com.hrbank.dto.employee.EmployeeDistributionDto;
 import com.hrbank.service.EmployeeService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import java.time.LocalDate;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -73,6 +86,16 @@ public class EmployeeController {
   @GetMapping("/stats/trend")
   public Page<EmployeeTrendDto> getEmployeeTrends(EmployeeSearchCondition condition, Pageable pageable) {
     return employeeService.findEmployeeTrends(condition, pageable);
+  }
+  
+  @Operation(summary = "직원 수 조회")
+  @GetMapping("/count")
+  public long getEmployeeCount(
+      @RequestParam(required = false) String status,
+      @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE) LocalDate fromDate,
+      @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE) LocalDate toDate) {
+
+    return employeeService.getEmployeeCount(status, fromDate, toDate);
   }
 
   @GetMapping("/stats/distribution")

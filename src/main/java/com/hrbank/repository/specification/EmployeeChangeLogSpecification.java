@@ -31,7 +31,7 @@ public class EmployeeChangeLogSpecification {
 
   public static Specification<EmployeeChangeLog> typeEquals(EmployeeChangeLogType type) {
     return (root, query, cb) ->
-        type == null ? null : cb.equal(root.get("type"), cb.literal(type));  // enum 타입으로 처리할 수 있도록
+        type == null ? null : cb.equal(root.get("type"), type);
   }
 
   public static Specification<EmployeeChangeLog> atBetween(LocalDateTime start, LocalDateTime end) {
