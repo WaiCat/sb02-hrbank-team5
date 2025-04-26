@@ -85,7 +85,7 @@ public class EmployeeRepositoryImpl implements EmployeeRepositoryCustom {
     LocalDate to = condition.getTo();
 
     if (from == null && to == null && "month".equals(groupByUnit)) {
-      from = now.minusMonths(11).withDayOfMonth(1); // 최근 12개월의 첫날
+      from = now.minusMonths(12).withDayOfMonth(1); // 최근 12개월의 첫날
       to = now.withDayOfMonth(now.lengthOfMonth());  // 이번달 마지막날
     }
 
@@ -94,6 +94,16 @@ public class EmployeeRepositoryImpl implements EmployeeRepositoryCustom {
     switch (groupByUnit) {
       case "year": dateFormat = "FORMATDATETIME(e.hireDate, 'yyyy')"; break;
       case "month": dateFormat = "FORMATDATETIME(e.hireDate, 'yyyy-MM')"; break;
+      case "quarter":
+        dateFormat = "CONCAT(FORMATDATETIME(e.hireDate, 'yyyy'), '-Q', " +
+            "(CASE WHEN EXTRACT(MONTH FROM e.hireDate) BETWEEN 1 AND 3 THEN 1 " +
+            "WHEN EXTRACT(MONTH FROM e.hireDate) BETWEEN 4 AND 6 THEN 2 " +
+            "WHEN EXTRACT(MONTH FROM e.hireDate) BETWEEN 7 AND 9 THEN 3 " +
+            "ELSE 4 END))";
+        break;
+      case "week":
+        dateFormat = "CONCAT(FORMATDATETIME(e.hireDate, 'yyyy'), '-W', EXTRACT(WEEK FROM e.hireDate))";
+        break;
       default: dateFormat = "FORMATDATETIME(e.hireDate, 'yyyy-MM-dd')"; // day
     }
 

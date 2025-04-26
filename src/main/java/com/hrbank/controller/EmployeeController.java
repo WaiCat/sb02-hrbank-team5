@@ -73,6 +73,8 @@ public class EmployeeController {
   @GetMapping("/stats/trend")
   public Page<EmployeeTrendDto> getEmployeeTrends(EmployeeSearchCondition condition, Pageable pageable) {
     return employeeService.findEmployeeTrends(condition, pageable);
+  }
+
   @GetMapping("/stats/distribution")
   @Operation(summary = "직원 분포 조회")
   public List<EmployeeDistributionDto> getEmployeeDistribution(
