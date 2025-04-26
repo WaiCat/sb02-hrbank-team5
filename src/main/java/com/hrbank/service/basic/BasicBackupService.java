@@ -15,6 +15,7 @@ import com.hrbank.repository.BackupRepository;
 import com.hrbank.repository.BinaryContentRepository;
 import com.hrbank.repository.EmployeeChangeLogRepository;
 import com.hrbank.repository.EmployeeRepository;
+import com.hrbank.repository.specification.BackupSpecifications;
 import com.hrbank.service.BackupService;
 import com.hrbank.storage.BinaryContentStorage;
 import java.io.File;
@@ -24,13 +25,15 @@ import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Base64;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,58 +55,56 @@ public class BasicBackupService implements BackupService {
   @Override
   public CursorPageResponseBackupDto searchBackups(
       String worker, BackupStatus status, LocalDateTime from, LocalDateTime to,
-      Long id, String cursor, Integer size, String sortField, String sortDirection) {
+      Long idAfter, String cursor, Integer size, String sortField, String sortDirection) {
 
-    // 필터링
-    List<Backup> filtered = backupRepository.findAll().stream()
-        .filter(backup -> worker == null || backup.getWorker().equals(worker))
-        .filter(backup -> status == null || backup.getStatus() == status)
-        .filter(backup -> from == null || backup.getStartedAt().isAfter(from))
-        .filter(backup -> to == null || backup.getStartedAt().isBefore(to))
+    int pageSize = size;
+
+    if(cursor != null) {
+      idAfter = decodeCursor(cursor);
+    }
+
+    // 기본 정렬 순서 설정
+    Sort.Direction direction = Sort.Direction.fromString(sortDirection);
+
+    // 정렬 설정 (기본 정렬 + id 정렬)
+    Sort sort = Sort.by(direction, sortField).and(Sort.by(Sort.Direction.ASC, "id"));
+
+    // Pageable 설정 처음 로딩 페이지 의미
+    Pageable pageable = PageRequest.of(0, pageSize + 1, sort);
+
+    // 검색 조건 조립
+    Specification<Backup> spec = BackupSpecifications.buildSearchSpecification(
+        worker, status, from, to, idAfter, sortDirection
+    );
+
+    // 쿼리 실행
+    List<Backup> backups = backupRepository.findAll(spec, pageable).getContent();
+
+    // Dto 변환
+    List<BackupDto> backupDtos = backups.stream()
+        .map(backupMapper::toDto)
         .collect(Collectors.toList());
 
-    // 정렬 기준 설정
-    Comparator<Backup> comparator = "endedAt".equalsIgnoreCase(sortField)
-        ? Comparator.comparing(Backup::getEndedAt)
-        : Comparator.comparing(Backup::getStartedAt);
-
-    if ("DESC".equalsIgnoreCase(sortDirection)) {
-      comparator = comparator.reversed();
+    boolean hasNext = backupDtos.size() > pageSize;
+    if (hasNext) {
+      backupDtos.remove(pageSize); // 초과된 한 개 삭제
     }
 
-    filtered.sort(comparator);
-
-    // 커서 디코딩 및 시작 인덱스 계산
-    int startIndex = 0;
-    Long cursorId = null;
-
-    if (cursor != null && !cursor.isBlank()) {
-      cursorId = decodeCursor(cursor);
-
-      for (int i = 0; i < filtered.size(); i++) {
-        if (Objects.equals(filtered.get(i).getId(), cursorId)) {
-          startIndex = i + 1;
-          break;
-        }
-      }
-    }
-
-    // 페이지 처리
-    int endIndex = Math.min(startIndex + size, filtered.size());
-    List<BackupDto> page = filtered.subList(startIndex, endIndex).stream()
-        .map(backupMapper::toDto)
-        .toList();
-
-    boolean hasNext = endIndex < filtered.size();
-    Long nextIdAfter = hasNext ? filtered.get(endIndex - 1).getId() : null;
+    Long nextIdAfter = hasNext ? backups.get(pageSize - 1).getId() : null;
     String nextCursor = hasNext ? encodeCursor(nextIdAfter) : null;
 
+    // (전체 개수 필요 없으면 이거 생략 가능)
+    long totalElements = backupRepository.count(
+        BackupSpecifications.buildSearchSpecification(worker, status, from, to, null, sortDirection)
+    );
+
+
     return new CursorPageResponseBackupDto(
-        page,
+        backupDtos,
         nextCursor,
         nextIdAfter,
         size,
-        filtered.size(),
+        totalElements,
         hasNext
     );
   }

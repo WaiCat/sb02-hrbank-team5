@@ -37,7 +37,7 @@ public class BackupController implements BackupApi {
       @RequestParam(defaultValue = "startedAt") String sortField,
       @RequestParam(defaultValue = "DESC") String sortDirection
   ){
-    CursorPageResponseBackupDto cursorPageResponseBackupDto = backupService.searchBackups(worker, status, startedAtFrom,startedAtTo,idAfter,cursor,size,sortField,sortDirection);
+    CursorPageResponseBackupDto cursorPageResponseBackupDto = backupService.searchBackups(worker, status, startedAtFrom, startedAtTo, idAfter, cursor, size, sortField, sortDirection);
     return ResponseEntity.ok(cursorPageResponseBackupDto);
   }
 
