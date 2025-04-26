@@ -51,4 +51,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, Emplo
           "WHERE (:status IS NULL OR e.status = :status) GROUP BY e.position")
   List<Object[]> countByPositionAndStatus(@Param("status") EmployeeStatus status);
 
+  boolean existsBy();
+
 }
