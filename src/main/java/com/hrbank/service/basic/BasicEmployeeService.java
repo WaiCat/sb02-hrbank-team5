@@ -1,7 +1,6 @@
 package com.hrbank.service.basic;
 
 import com.hrbank.dto.binarycontent.BinaryContentCreateRequest;
-import com.hrbank.dto.binarycontent.BinaryContentDto;
 import com.hrbank.dto.employee.CursorPageResponseEmployeeDto;
 import com.hrbank.dto.employee.EmployeeCreateRequest;
 import com.hrbank.dto.employee.EmployeeDistributionDto;
@@ -15,7 +14,6 @@ import com.hrbank.entity.Employee;
 import com.hrbank.enums.EmployeeStatus;
 import com.hrbank.exception.ErrorCode;
 import com.hrbank.exception.RestException;
-import com.hrbank.mapper.BinaryContentMapper;
 import com.hrbank.mapper.EmployeeMapper;
 import com.hrbank.repository.DepartmentRepository;
 import com.hrbank.repository.EmployeeRepository;
@@ -43,8 +41,6 @@ public class BasicEmployeeService implements EmployeeService {
   private final BinaryContentService binaryContentService;
   private final EmployeeMapper employeeMapper;
   private final EmployeeChangeLogService changeLogService;
-  private final BinaryContentMapper binaryContentMapper;
-
 
   @Override
   @Transactional(readOnly = true)
@@ -73,12 +69,15 @@ public class BasicEmployeeService implements EmployeeService {
   // 직원 수정 메서드 (update)
   @Override
   @Transactional
-  public EmployeeDto update(Long id, EmployeeUpdateRequest request, String ip) {
+  public EmployeeDto update(
+      Long id, EmployeeUpdateRequest request, BinaryContentCreateRequest fileRequest, String ip
+  ) {
     Employee employee = employeeRepository.findById(id)
         .orElseThrow(() -> new RestException(ErrorCode.EMPLOYEE_NOT_FOUND));
+    String newEmail = request.email();
 
-    // 이메일 중복 체크
-    if (employeeRepository.findByEmail(request.email()).isPresent()) {
+    // 이메일 중복 체크 (기존 이메일과 같을 경우 중복 체크 안 함)
+    if (!employee.getEmail().equals(newEmail) && employeeRepository.findByEmail(newEmail).isPresent()) {
       throw new RestException(ErrorCode.EMAIL_ALREADY_EXISTS);
     }
 
@@ -89,17 +88,6 @@ public class BasicEmployeeService implements EmployeeService {
     // 부서 변경 (양방향 동기화)
     employee.changeDepartment(newDepartment);
 
-    BinaryContent profileImage = null;
-    if (request.profileImageId() != null) {
-        BinaryContentDto profileImageDto = binaryContentService.findById(request.profileImageId());
-        profileImage = binaryContentMapper.toEntity(profileImageDto);
-
-        // 기존 프로필 이미지 삭제
-        if (employee.getProfileImage() != null) {
-            binaryContentService.delete(employee.getProfileImage().getId());
-        }
-    }
-
     // 변경 전 상태 보존
     Employee before = new Employee(
         employee.getName(), employee.getEmail(), employee.getEmployeeNumber(),
@@ -108,15 +96,25 @@ public class BasicEmployeeService implements EmployeeService {
     );
     before.changeProfileImage(employee.getProfileImage());
 
+
+    BinaryContent newProfileImage = null;
+    if (fileRequest != null) { // 새로 들어온 프로필이 있다면
+      if (employee.getProfileImageId() != null) { // 기존에 프로필이 있다면 삭제
+        binaryContentService.delete(employee.getProfileImageId());
+      }
+      newProfileImage = binaryContentService.create(fileRequest);
+      employee.changeProfileImage(newProfileImage);
+    }
+
     // 값 변경
     employee.changeDepartment(newDepartment);
     employee.changePosition(request.position());
     employee.changeStatus(request.status());
-    employee.changeProfileImage(profileImage);
     employee.updateName(request.name());
     employee.updateEmail(request.email());
     employee.updateHireDate(request.hireDate());
 
+    employeeRepository.save(employee);
     // 이력 로그 저장
     changeLogService.saveChangeLog(before, employee, request.memo(), ip);
 
@@ -155,7 +153,7 @@ public class BasicEmployeeService implements EmployeeService {
     if (profileImageEntity != null) {
         employee.changeProfileImage(profileImageEntity);
     }
-
+    employeeRepository.save(employee);
     changeLogService.saveChangeLog(null, employee, request.memo(), ip);
 
     return employeeMapper.toDto(employee);

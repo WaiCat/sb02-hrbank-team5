@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -44,8 +45,9 @@ public class BinaryContentStorage {
   }
 
   // 프로필 이미지 파일 Storage에 저장
-  public void put(Long id, byte[] data){
-    Path filePath = root.resolve(id.toString());
+  public void put(Long id, byte[] data, String subtype) {
+    Path filePath = root.resolve(id.toString() + "." + subtype);
+
     if (Files.exists(filePath)) {
       throw new RestException(ErrorCode.FILE_ALREADY_EXIST);
     }
@@ -83,8 +85,8 @@ public class BinaryContentStorage {
   }
 
   // 프로필 이미지 삭제
-  public void delete(Long id){
-    Path filePath = root.resolve(id.toString());
+  public void delete(Long id, String subtype){
+    Path filePath = root.resolve(id.toString() + "." + subtype);
     try{
       boolean success = Files.deleteIfExists(filePath);
       if(!success){
@@ -128,7 +130,24 @@ public class BinaryContentStorage {
     return ResponseEntity.ok()
         .contentType(mediaType)
         .header(HttpHeaders.CONTENT_DISPOSITION,
-            "attachment; filename=\"" + contentDto.fileName() + "\"")
+            buildContentDisposition(contentDto.fileName()))
         .body(resource);
+  }
+
+  private String buildContentDisposition(String fileName) {
+    try {
+      String encoded = URLEncoder
+          .encode(fileName, StandardCharsets.UTF_8)
+          .replaceAll("\\+", "%20");
+
+      String fallback = fileName.replaceAll("[^A-Za-z0-9._-]", "_");
+
+      return "attachment; filename=\""
+          + fallback
+          + "\"; filename*=UTF-8''"
+          + encoded;
+    } catch (Exception e) {
+      return "attachment";
+    }
   }
 }

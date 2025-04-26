@@ -1,5 +1,6 @@
 package com.hrbank.controller;
 
+import com.hrbank.dto.binarycontent.BinaryContentCreateRequest;
 import com.hrbank.dto.employee.CursorPageResponseEmployeeDto;
 import com.hrbank.dto.employee.EmployeeCreateRequest;
 import com.hrbank.dto.employee.EmployeeDistributionDto;
@@ -23,7 +24,6 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -47,11 +47,13 @@ public class EmployeeController {
   @PatchMapping("/{id}")
   public ResponseEntity<EmployeeDto> updateEmployee(
       @PathVariable Long id,
-      @RequestBody EmployeeUpdateRequest request,
+      @RequestPart("employee")  EmployeeUpdateRequest request,
+      @RequestPart(value = "profile", required = false) MultipartFile file,
       HttpServletRequest httpRequest
   ) {
     String ip = httpRequest.getRemoteAddr();
-    EmployeeDto updated = employeeService.update(id, request, ip);
+    BinaryContentCreateRequest fileRequest = BinaryContentCreateRequest.of(file);
+    EmployeeDto updated = employeeService.update(id, request, fileRequest, ip);
     return ResponseEntity.ok(updated);
   }
 

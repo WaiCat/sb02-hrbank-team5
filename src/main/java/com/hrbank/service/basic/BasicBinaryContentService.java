@@ -38,7 +38,8 @@ public class BasicBinaryContentService implements BinaryContentService {
     }
     BinaryContent binaryContent = new BinaryContent(originalFilename, contentType, size);
     binaryContentRepository.save(binaryContent);
-    binaryContentStorage.put(binaryContent.getId(), bytes);
+    String type = contentType.substring(contentType.indexOf('/') + 1);
+    binaryContentStorage.put(binaryContent.getId(), bytes, type);
     return binaryContent;
   }
 
@@ -52,10 +53,10 @@ public class BasicBinaryContentService implements BinaryContentService {
   @Override
   @Transactional
   public void delete(Long id) {
-    if (!binaryContentRepository.existsById(id)) {
-      throw new RestException(ErrorCode.PROFILE_IMAGE_NOT_FOUND);
-    }
-    binaryContentStorage.delete(id);
+    BinaryContent binaryContent = binaryContentRepository.findById(id)
+        .orElseThrow(() -> new RestException(ErrorCode.BINARY_CONTENT_NOT_FOUND));
+    String type = binaryContent.getContentType().substring(binaryContent.getContentType().indexOf('/') + 1);
+    binaryContentStorage.delete(id, type);
     binaryContentRepository.deleteById(id);
   }
 }
