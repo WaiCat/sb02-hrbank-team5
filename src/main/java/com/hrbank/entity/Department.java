@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -30,7 +31,7 @@ public class Department {
     // 단방향 1:N 관계 (Department -> Employee)
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "department_id")
-    private List<Employee> employees;
+    private List<Employee> employees= new ArrayList<>();
 
     public Department(String name, String description, LocalDate establishedDate) {
         this.name = name;

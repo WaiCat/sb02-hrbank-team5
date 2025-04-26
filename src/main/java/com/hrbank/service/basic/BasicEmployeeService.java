@@ -48,6 +48,7 @@ public class BasicEmployeeService implements EmployeeService {
 
   @Override
   @Transactional(readOnly = true)
+
   public CursorPageResponseEmployeeDto searchEmployees(EmployeeSearchCondition condition) {
     // 페이지네이션 처리
     Pageable pageable = PageRequest.of(condition.getPage(), condition.getSize(), Sort.by(condition.getSortField()));
@@ -81,9 +82,12 @@ public class BasicEmployeeService implements EmployeeService {
       throw new RestException(ErrorCode.EMAIL_ALREADY_EXISTS);
     }
 
-    // 부서 조회
-    Department department = departmentRepository.findById(request.departmentId())
-        .orElseThrow(() -> new RestException(ErrorCode.DEPARTMENT_NOT_FOUND));
+    // 새 부서 조회
+    Department newDepartment = departmentRepository.findById(request.departmentId())
+            .orElseThrow(() -> new RestException(ErrorCode.DEPARTMENT_NOT_FOUND));
+
+    // 부서 변경 (양방향 동기화)
+    employee.changeDepartment(newDepartment);
 
     BinaryContent profileImage = null;
     if (request.profileImageId() != null) {
@@ -105,7 +109,7 @@ public class BasicEmployeeService implements EmployeeService {
     before.changeProfileImage(employee.getProfileImage());
 
     // 값 변경
-    employee.changeDepartment(department);
+    employee.changeDepartment(newDepartment);
     employee.changePosition(request.position());
     employee.changeStatus(request.status());
     employee.changeProfileImage(profileImage);
@@ -145,6 +149,8 @@ public class BasicEmployeeService implements EmployeeService {
         request.hireDate(),
         EmployeeStatus.ACTIVE
     );
+
+    employeeRepository.save(employee);
 
     if (profileImageEntity != null) {
         employee.changeProfileImage(profileImageEntity);

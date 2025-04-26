@@ -83,10 +83,6 @@ public class Employee {
     this.hireDate = hireDate;
   }
 
-  public void changeDepartment(Department newDepartment) {
-    this.department = newDepartment;
-  }
-
   public void changePosition(String newPosition) {
     this.position = newPosition;
   }
@@ -98,4 +94,22 @@ public class Employee {
   public void changeProfileImage(BinaryContent newProfileImage) {
     this.profileImage = newProfileImage;
   }
+
+  public void setDepartment(Department department) {
+    this.department = department;
+  }
+
+  public void changeDepartment(Department newDepartment) {
+    //기존 부서에서 제거
+    if (this.department != null) {
+      this.department.getEmployees().remove(this);
+    }
+
+    // 새 부서 설정
+    if (newDepartment != null) {
+      newDepartment.getEmployees().add(this);
+    }
+    this.department = newDepartment;
+  }
+
 }

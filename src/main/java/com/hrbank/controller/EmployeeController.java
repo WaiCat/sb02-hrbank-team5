@@ -59,7 +59,7 @@ public class EmployeeController {
   @PostMapping
   public ResponseEntity<EmployeeDto> createEmployee(
       @RequestPart("employee") @Valid EmployeeCreateRequest request,
-      @RequestPart("profile") MultipartFile profileImage, HttpServletRequest httpRequest) {
+      @RequestPart(value = "profile", required = false) MultipartFile profileImage, HttpServletRequest httpRequest) {
     String ip = httpRequest.getRemoteAddr();
     return ResponseEntity.ok(employeeService.create(request, profileImage, ip));
   }
