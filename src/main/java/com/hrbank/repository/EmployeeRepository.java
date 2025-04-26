@@ -29,6 +29,17 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, Emplo
   Page<EmployeeTrendDto> findEmployeeTrends(EmployeeSearchCondition condition, Pageable pageable);
 
   Page<Employee> findAllWithFilter(EmployeeSearchCondition condition, Pageable pageable);
+  @Query("SELECT COUNT(e) FROM Employee e " +
+      "WHERE e.status = :status " +
+      "AND e.hireDate BETWEEN :fromDate AND :toDate")
+  long countByStatusAndHireDate(
+      @Param("status") EmployeeStatus status,
+      @Param("fromDate") LocalDate fromDate,
+      @Param("toDate") LocalDate toDate
+  );
+
+  // 전체 직원 수 집계 쿼리
+  long countByStatus(EmployeeStatus status);
 
   // 부서별 직원 수 집계 쿼리
   @Query("SELECT d.name as groupKey, COUNT(e) as count FROM Employee e JOIN e.department d " +
