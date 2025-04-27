@@ -26,7 +26,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,24 +70,44 @@ public class BasicEmployeeChangeLogService implements EmployeeChangeLogService {
         ipAddress,
         LocalDateTime.now()
     );
+    // 모든 type의 detail 생성
+    if(type == EmployeeChangeLogType.CREATED) {
+      addDetailIfChanged(changeLog, "hireDate", null, after.getHireDate().toString());
+      addDetailIfChanged(changeLog, "name", null, after.getName());
+      addDetailIfChanged(changeLog, "position", null, after.getPosition());
+      addDetailIfChanged(changeLog, "department", null, after.getDepartment().getName());
+      addDetailIfChanged(changeLog, "email", null, after.getEmail());
+      addDetailIfChanged(changeLog, "employeeNumber", null, after.getEmployeeNumber());
+      addDetailIfChanged(changeLog, "status", null, after.getStatus().name());
+      addDetailIfChanged(changeLog, "profileImage", null,
+          Optional.ofNullable(after.getProfileImage()).map(BinaryContent::getFileName).orElse(null));
+    }
 
-    // 3. UPDATED일 경우에만 필드 비교 후 detail 생성
-    if (type == EmployeeChangeLogType.UPDATED && before != null && after != null) {
-
+    else if (type == EmployeeChangeLogType.UPDATED) {
+      addDetailIfChanged(changeLog, "hireDate"
+          , before.getHireDate().toString(), after.getHireDate().toString());
       addDetailIfChanged(changeLog, "name", before.getName(), after.getName());
-      addDetailIfChanged(changeLog, "email", before.getEmail(), after.getEmail());
       addDetailIfChanged(changeLog, "position", before.getPosition(), after.getPosition());
-      addDetailIfChanged(changeLog, "status", before.getStatus().name(), after.getStatus().name());
-
       // 부서는 null 가능성 있음
       addDetailIfChanged(changeLog, "department",
           Optional.ofNullable(before.getDepartment()).map(Department::getName).orElse(null),
           Optional.ofNullable(after.getDepartment()).map(Department::getName).orElse(null));
-
+      addDetailIfChanged(changeLog, "email", before.getEmail(), after.getEmail());
+      addDetailIfChanged(changeLog, "status", before.getStatus().name(), after.getStatus().name());
       // 프로필 이미지는 null 가능성 있음
       addDetailIfChanged(changeLog, "profileImage",
           Optional.ofNullable(before.getProfileImage()).map(BinaryContent::getFileName).orElse(null),
           Optional.ofNullable(after.getProfileImage()).map(BinaryContent::getFileName).orElse(null));
+    }
+    else{
+      addDetailIfChanged(changeLog, "hireDate", before.getHireDate().toString(), null);
+      addDetailIfChanged(changeLog, "name", before.getName(), null);
+      addDetailIfChanged(changeLog, "position", before.getPosition(), null);
+      addDetailIfChanged(changeLog, "department", before.getDepartment().getName(), null);
+      addDetailIfChanged(changeLog, "email", before.getEmail(), null);
+      addDetailIfChanged(changeLog, "status", before.getStatus().name(), null);
+      addDetailIfChanged(changeLog, "profileImage",
+          Optional.ofNullable(before.getProfileImage()).map(BinaryContent::getFileName).orElse(null), null);
     }
 
     // 4. 저장

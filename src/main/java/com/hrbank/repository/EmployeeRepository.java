@@ -54,6 +54,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>,
 
   boolean existsBy();
 
-  @Query("select e from Employee e join fetch e.department d where e.id = :id")
-  Optional<Employee> findByIdWithDepartment(@Param("id") Long id);
+  @Query("select e from Employee e "
+      + "join fetch e.department d left join fetch e.profileImage p "
+      + "where e.id = :id")
+  Optional<Employee> findByIdWithDepartmentAndBinaryContent(@Param("id") Long id);
 }

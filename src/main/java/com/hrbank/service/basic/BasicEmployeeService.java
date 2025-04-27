@@ -72,7 +72,7 @@ public class BasicEmployeeService implements EmployeeService {
   public EmployeeDto update(
       Long id, EmployeeUpdateRequest request, BinaryContentCreateRequest fileRequest, String ip
   ) {
-    Employee employee = employeeRepository.findById(id)
+    Employee employee = employeeRepository.findByIdWithDepartmentAndBinaryContent(id)
         .orElseThrow(() -> new RestException(ErrorCode.EMPLOYEE_NOT_FOUND));
     String newEmail = request.email();
 
@@ -163,8 +163,12 @@ public class BasicEmployeeService implements EmployeeService {
   @Override
   @Transactional
   public void delete(Long id, String ip) {
-    Employee employee = employeeRepository.findById(id).orElseThrow(() -> new RestException(ErrorCode.EMPLOYEE_NOT_FOUND));
-    Employee before = new Employee(employee.getName(), employee.getEmail(), employee.getEmployeeNumber(), employee.getDepartment(), employee.getPosition(), employee.getHireDate(), employee.getStatus());
+    Employee employee = employeeRepository.findByIdWithDepartmentAndBinaryContent(id)
+        .orElseThrow(() -> new RestException(ErrorCode.EMPLOYEE_NOT_FOUND));
+    Employee before = new Employee(
+        employee.getName(), employee.getEmail(), employee.getEmployeeNumber(),
+        employee.getDepartment(), employee.getPosition(), employee.getHireDate(), employee.getStatus());
+    before.changeProfileImage(employee.getProfileImage());
 
     if (employee.getProfileImage() != null) {
       binaryContentService.delete(employee.getProfileImage().getId());
@@ -176,7 +180,7 @@ public class BasicEmployeeService implements EmployeeService {
 
   @Override
   public EmployeeDto findById(Long id) {
-    Employee employee = employeeRepository.findByIdWithDepartment(id)
+    Employee employee = employeeRepository.findByIdWithDepartmentAndBinaryContent(id)
         .orElseThrow(() -> new RestException(ErrorCode.EMPLOYEE_NOT_FOUND));
     return employeeMapper.toDto(employee);
   }
