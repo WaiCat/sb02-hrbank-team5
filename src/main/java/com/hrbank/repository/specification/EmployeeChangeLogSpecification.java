@@ -3,7 +3,7 @@ package com.hrbank.repository.specification;
 import com.hrbank.dto.employeeChangeLog.EmployeeChangeLogSearchRequest;
 import com.hrbank.entity.EmployeeChangeLog;
 import com.hrbank.enums.EmployeeChangeLogType;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import org.springframework.data.jpa.domain.Specification;
 
 public class EmployeeChangeLogSpecification {
@@ -34,11 +34,13 @@ public class EmployeeChangeLogSpecification {
         type == null ? null : cb.equal(root.get("type"), cb.literal(type));  // enum 타입으로 처리할 수 있도록
   }
 
-  public static Specification<EmployeeChangeLog> atBetween(LocalDateTime start, LocalDateTime end) {
-    return (root, query, cb) ->
-        (start == null || end == null)
-            ? null
-            : cb.between(root.get("at"), start, end);
+  public static Specification<EmployeeChangeLog> atBetween(OffsetDateTime start, OffsetDateTime end) {
+    return (root, query, cb) ->{
+      if (start == null || end == null) {
+        return null;
+      }
+      return cb.between(root.get("at"), start.toLocalDateTime(), end.toLocalDateTime());
+    };
   }
 
   // 검색을 위한 메서드

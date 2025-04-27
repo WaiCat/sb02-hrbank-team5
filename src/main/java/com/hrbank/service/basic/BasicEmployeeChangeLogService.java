@@ -17,6 +17,7 @@ import com.hrbank.repository.EmployeeChangeLogRepository;
 import com.hrbank.repository.specification.EmployeeChangeLogSpecification;
 import com.hrbank.service.EmployeeChangeLogService;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -185,12 +186,12 @@ public class BasicEmployeeChangeLogService implements EmployeeChangeLogService {
 
   @Override
   @Transactional(readOnly = true)
-  public long countChangeLogs(LocalDateTime fromDate, LocalDateTime toDate) {
-    LocalDateTime now = LocalDateTime.now();
+  public long countChangeLogs(OffsetDateTime fromDate, OffsetDateTime toDate) {
+    OffsetDateTime now = OffsetDateTime.now();
 
     // 기본값 설정
-    LocalDateTime start = (fromDate != null) ? fromDate : now.minusDays(7);
-    LocalDateTime end = (toDate != null) ? toDate : now;
+    OffsetDateTime start = (fromDate != null) ? fromDate : now.minusDays(7);
+    OffsetDateTime end = (toDate != null) ? toDate : now;
 
     if (start.isAfter(end)) {
       throw new RestException(ErrorCode.INVALID_DATE_RANGE);

@@ -1,15 +1,15 @@
 package com.hrbank.dto.employeeChangeLog;
 
 import com.hrbank.enums.EmployeeChangeLogType;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 public record EmployeeChangeLogSearchRequest(
     String employeeNumber,
     EmployeeChangeLogType type,
     String memo,
     String ipAddress,
-    LocalDateTime atFrom,
-    LocalDateTime atTo,
+    OffsetDateTime atFrom,
+    OffsetDateTime atTo,
     String sortField,
     String sortDirection
 ) {}

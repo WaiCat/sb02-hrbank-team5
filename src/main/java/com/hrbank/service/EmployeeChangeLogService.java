@@ -5,6 +5,7 @@ import com.hrbank.dto.employeeChangeLog.DiffDto;
 import com.hrbank.dto.employeeChangeLog.EmployeeChangeLogSearchRequest;
 import com.hrbank.entity.Employee;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 public interface EmployeeChangeLogService {
@@ -20,5 +21,5 @@ public interface EmployeeChangeLogService {
 
   List<DiffDto> getChangeLogDetails(Long changeLogId);
 
-  long countChangeLogs(LocalDateTime fromDate, LocalDateTime toDate);
+  long countChangeLogs(OffsetDateTime fromDate, OffsetDateTime toDate);
 }

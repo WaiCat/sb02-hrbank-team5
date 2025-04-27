@@ -5,6 +5,7 @@ import com.hrbank.dto.employeeChangeLog.DiffDto;
 import com.hrbank.dto.employeeChangeLog.EmployeeChangeLogSearchRequest;
 import com.hrbank.service.EmployeeChangeLogService;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -52,8 +53,8 @@ public class EmployeeChangeLogController {
 
   @GetMapping("/count")
   public ResponseEntity<Long> countChangeLogs(
-      @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE_TIME) LocalDateTime fromDate,
-      @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE_TIME) LocalDateTime toDate
+      @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE_TIME) OffsetDateTime fromDate,
+      @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE_TIME) OffsetDateTime toDate
   ) {
     long count = changeLogService.countChangeLogs(fromDate, toDate);
     return ResponseEntity.ok(count);
