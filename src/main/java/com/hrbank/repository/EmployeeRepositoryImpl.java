@@ -26,6 +26,10 @@ public class EmployeeRepositoryImpl implements EmployeeRepositoryCustom {
     String jpql = "SELECT e FROM Employee e JOIN FETCH e.department d WHERE 1=1";
 
     // 필터링 조건 추가
+    if (condition.getNameOrEmail() != null) {
+      jpql += " AND (e.name LIKE :nameOrEmail OR e.email LIKE :nameOrEmail)"; // 이름 또는 이메일 부분일치
+    }
+
     if (condition.getDepartment() != null) {
       jpql += " AND d.name LIKE :department"; // 부분 일치로 변경
     }
@@ -49,6 +53,9 @@ public class EmployeeRepositoryImpl implements EmployeeRepositoryCustom {
     TypedQuery<Employee> query = entityManager.createQuery(jpql, Employee.class);
 
     // 파라미터 바인딩
+    if (condition.getNameOrEmail() != null) {
+      query.setParameter("nameOrEmail", "%" + condition.getNameOrEmail() + "%");
+    }
     if (condition.getDepartment() != null) {
       query.setParameter("department", "%" + condition.getDepartment() + "%");  // 부분 일치
     }
