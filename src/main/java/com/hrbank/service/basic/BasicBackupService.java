@@ -24,6 +24,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
@@ -150,7 +151,7 @@ public class BasicBackupService implements BackupService {
 
     } catch (Exception e) {
       // 로그 파일 생성
-      Long logFileId = saveErrorLogFile(inProgress.id(), e);
+      Long logFileId = saveErrorLogFile(inProgress, e);
 
       // 실패 처리
       markBackupFailed(inProgress.id(), logFileId);
@@ -239,8 +240,14 @@ public class BasicBackupService implements BackupService {
     try{
       tempCsv = employeeCsvGenerator.generate(dto);
       binaryContentStorage.putCsvFile(contentId, tempCsv);
+      // 임시 파일 생성때의 이름을 쓰면 불필요한 랜덤값이 붙으니, 자체적으로 파일이름 생성.
+      DateTimeFormatter fmt = DateTimeFormatter
+          .ofPattern("yyyyMMdd_HHmmss");
+      String timestamp = fmt.format(dto.startedAt());
+      String backupId = String.valueOf(dto.id());
+      String fileName = "employee_backup_" + backupId + "_" + timestamp + ".csv";
 
-      binaryContent.setFileName(tempCsv.getName());
+      binaryContent.setFileName(fileName);
       binaryContent.setContentType("text/csv");
       binaryContent.setSize(tempCsv.length());
       binaryContentRepository.save(binaryContent);
@@ -263,13 +270,18 @@ public class BasicBackupService implements BackupService {
     }
   }
 
-  private Long saveErrorLogFile(Long backupId, Exception e) {
+  private Long saveErrorLogFile(BackupDto dto, Exception e) {
     StringWriter sw = new StringWriter();
     e.printStackTrace(new PrintWriter(sw));
     String trace = sw.toString();
 
     BinaryContent binaryContent = new BinaryContent();
-    binaryContent.setFileName("backup_error_" + backupId + ".log");
+    DateTimeFormatter fmt = DateTimeFormatter
+        .ofPattern("yyyyMMdd_HHmmss");
+    String timestamp = fmt.format(dto.startedAt());
+    String backupId = String.valueOf(dto.id());
+
+    binaryContent.setFileName("backup_error_" + backupId + "_" + timestamp + ".log");
     binaryContent.setContentType("text/plain");
     binaryContent = binaryContentRepository.save(binaryContent);
     Long contentId = binaryContent.getId();

@@ -8,7 +8,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -30,14 +29,11 @@ public class EmployeeCsvGenerator {
       propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ, readOnly = true
   )
   public File generate(BackupDto dto) throws IOException {
-    DateTimeFormatter fmt = DateTimeFormatter
-        .ofPattern("yyyyMMdd_HHmmss")
-        .withZone(ZoneId.of("Asia/Seoul"));
+    // 혹시 모르니 임시 파일도 유니크한 파일명으로 저장되도록 함.
+    DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
     String timestamp = fmt.format(dto.startedAt());
     String backupId = String.valueOf(dto.id());
-
-    File tempFile = File.createTempFile(
-        "employee_backup_" + backupId + "_" + timestamp,".csv");
+    File tempFile = File.createTempFile(backupId + "_" + timestamp,".csv");
 
     tempFile.deleteOnExit(); // JVM 종료 시 임시 파일 삭제(이중 대책)
 
