@@ -7,7 +7,7 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface DepartmentMapper {
-    // N+1 문제 해결을 위해 직접 employeeCount를 주입받도록 수정
+    // 직원 수를 직접 주입받아 DTO로 변환
     @Mapping(target = "employeeCount", source = "employeeCount")
     DepartmentDto toDto(Department department, int employeeCount);
 

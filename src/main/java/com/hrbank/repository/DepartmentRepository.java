@@ -24,11 +24,11 @@ public interface DepartmentRepository extends JpaRepository<Department, Long>, J
     @Query("SELECT COUNT(e) > 0 FROM Employee e WHERE e.department.id = :departmentId")
     boolean hasEmployees(@Param("departmentId") Long departmentId);
 
-    // N+1 문제 해결을 위한 각 부서별 직원 수 조회 메서드 추가
+    // 각 부서별 직원 수 조회 메서드
     @Query("SELECT COUNT(e) FROM Employee e WHERE e.department.id = :departmentId")
     int countEmployeesByDepartmentId(@Param("departmentId") Long departmentId);
 
-    // N+1 문제 해결을 위한 여러 부서의 직원 수를 한번에 조회하는 메서드 추가
+    // 여러 부서의 직원 수를 한번에 조회하는 메서드
     @Query("SELECT d.id, COUNT(e) FROM Department d LEFT JOIN Employee e ON d.id = e.department.id WHERE d.id IN :departmentIds GROUP BY d.id")
     List<Object[]> countEmployeesByDepartmentIds(@Param("departmentIds") List<Long> departmentIds);
 

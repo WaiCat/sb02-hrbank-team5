@@ -57,7 +57,7 @@ public class BasicDepartmentService implements DepartmentService {
         Department department = departmentRepository.findById(id)
                 .orElseThrow(() -> new RestException(ErrorCode.DEPARTMENT_NOT_FOUND));
 
-        // 직원 수 조회 - N+1 문제 해결
+        // 직원 수 조회
         int employeeCount = departmentRepository.countEmployeesByDepartmentId(id);
 
         return departmentMapper.toDto(department, employeeCount);
@@ -80,7 +80,7 @@ public class BasicDepartmentService implements DepartmentService {
         department.update(request.name(), request.description(), request.establishedDate());
         Department updatedDepartment = departmentRepository.save(department);
 
-        // 직원 수 조회 - N+1 문제 해결
+        // 직원 수 조회
         int employeeCount = departmentRepository.countEmployeesByDepartmentId(id);
 
         return departmentMapper.toDto(updatedDepartment, employeeCount);
@@ -142,7 +142,7 @@ public class BasicDepartmentService implements DepartmentService {
                 DepartmentSpecifications.nameOrDescriptionContains(nameOrDescription)
         );
 
-// N+1 문제 해결: 부서 ID 목록 추출
+        // 부서 ID 목록 추출
         List<Long> departmentIds = departments.stream()
                 .map(Department::getId)
                 .collect(Collectors.toList());
@@ -175,7 +175,7 @@ public class BasicDepartmentService implements DepartmentService {
             departments = departments.subList(0, pageSize);
         }
 
-        // N+1 문제 해결: 각 부서의 직원 수를 미리 조회한 Map에서 가져옴
+        // 각 부서의 직원 수를 미리 조회한 Map에서 가져옴
         List<DepartmentDto> departmentDtos = departments.stream()
                 .map(dept -> {
                     int employeeCount = employeeCountMap.getOrDefault(dept.getId(), 0);
