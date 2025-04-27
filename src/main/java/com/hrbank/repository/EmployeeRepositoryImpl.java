@@ -26,43 +26,61 @@ public class EmployeeRepositoryImpl implements EmployeeRepositoryCustom {
     String jpql = "SELECT e FROM Employee e JOIN FETCH e.department d WHERE 1=1";
 
     // 필터링 조건 추가
-    if (condition.getNameOrEmail() != null) {
+    if (condition.getNameOrEmail() != null && !condition.getNameOrEmail().isEmpty()) {
       jpql += " AND (e.name LIKE :nameOrEmail OR e.email LIKE :nameOrEmail)"; // 이름 또는 이메일 부분일치
     }
 
-    if (condition.getDepartment() != null) {
+    if (condition.getDepartment() != null && !condition.getDepartment().isEmpty()) {
       jpql += " AND d.name LIKE :department"; // 부분 일치로 변경
     }
 
-    if (condition.getPosition() != null) {
+    if (condition.getPosition() != null && !condition.getPosition().isEmpty()) {
       jpql += " AND e.position LIKE :position";  // 포지션 부분 일치
     }
 
-    if (condition.getEmployeeNumber() != null) {
+    if (condition.getEmployeeNumber() != null && !condition.getEmployeeNumber().isEmpty()) {
       jpql += " AND e.employeeNumber LIKE :employeeNumber";  // 사원번호 부분 일치
     }
 
     if (condition.getHireDateFrom() != null) {
       jpql += " AND e.hireDate >= :hireDateFrom"; // 입사일 이후
     }
+
     if (condition.getHireDateTo() != null) {
       jpql += " AND e.hireDate <= :hireDateTo"; // 입사일 이전
     }
+
+    if (condition.getStatus() != null) {
+      jpql += " AND e.status = :status";
+    }
+
+    // sortField 안전 처리
+    String sortField = condition.getSortField();
+    String sortDirection = condition.getSortDirection();
+
+    if (!List.of("name", "hireDate", "employeeNumber").contains(sortField)) {
+      sortField = "name";
+    }
+    if (!"asc".equalsIgnoreCase(sortDirection) && !"desc".equalsIgnoreCase(sortDirection)) {
+      sortDirection = "asc"; // 기본 asc
+    }
+
+    jpql += " ORDER BY e." + sortField + " " + sortDirection;
 
     // 쿼리 실행
     TypedQuery<Employee> query = entityManager.createQuery(jpql, Employee.class);
 
     // 파라미터 바인딩
-    if (condition.getNameOrEmail() != null) {
+    if (condition.getNameOrEmail() != null && !condition.getNameOrEmail().isEmpty()) {
       query.setParameter("nameOrEmail", "%" + condition.getNameOrEmail() + "%");
     }
-    if (condition.getDepartment() != null) {
+    if (condition.getDepartment() != null && !condition.getDepartment().isEmpty()) {
       query.setParameter("department", "%" + condition.getDepartment() + "%");  // 부분 일치
     }
-    if (condition.getPosition() != null) {
+    if (condition.getPosition() != null && !condition.getPosition().isEmpty()) {
       query.setParameter("position", "%" + condition.getPosition() + "%");  // 부분 일치
     }
-    if (condition.getEmployeeNumber() != null) {
+    if (condition.getEmployeeNumber() != null && !condition.getEmployeeNumber().isEmpty()) {
       query.setParameter("employeeNumber", "%" + condition.getEmployeeNumber() + "%");  // 부분 일치
     }
     if (condition.getHireDateFrom() != null) {
@@ -71,8 +89,12 @@ public class EmployeeRepositoryImpl implements EmployeeRepositoryCustom {
     if (condition.getHireDateTo() != null) {
       query.setParameter("hireDateTo", condition.getHireDateTo());
     }
+    if (condition.getStatus() != null) {
+      query.setParameter("status", condition.getStatus());
+    }
 
     // 페이징 처리
+    query.setFirstResult(pageable.getPageNumber() * pageable.getPageSize());
     query.setMaxResults(pageable.getPageSize());
 
     // 결과 목록
@@ -158,13 +180,16 @@ public class EmployeeRepositoryImpl implements EmployeeRepositoryCustom {
     String jpql = "SELECT COUNT(e) FROM Employee e LEFT JOIN e.department d WHERE 1=1";
 
     // 필터링 조건 추가
-    if (condition.getDepartment() != null) {
+    if (condition.getNameOrEmail() != null && !condition.getNameOrEmail().isEmpty()) {
+      jpql += " AND (e.name LIKE :nameOrEmail OR e.email LIKE :nameOrEmail)";
+    }
+    if (condition.getDepartment() != null && !condition.getDepartment().isEmpty()) {
       jpql += " AND d.name LIKE :department"; // 부서 필터 부분 일치
     }
-    if (condition.getPosition() != null) {
+    if (condition.getPosition() != null && !condition.getPosition().isEmpty()) {
       jpql += " AND e.position LIKE :position"; // 포지션 필터 부분 일치
     }
-    if (condition.getEmployeeNumber() != null) {
+    if (condition.getEmployeeNumber() != null && !condition.getEmployeeNumber().isEmpty()) {
       jpql += " AND e.employeeNumber LIKE :employeeNumber"; // 사원번호 필터 부분 일치
     }
     if (condition.getHireDateFrom() != null) {
@@ -173,17 +198,23 @@ public class EmployeeRepositoryImpl implements EmployeeRepositoryCustom {
     if (condition.getHireDateTo() != null) {
       jpql += " AND e.hireDate <= :hireDateTo"; // 입사일 이전 필터
     }
+    if (condition.getStatus() != null) {
+      jpql += " AND e.status = :status";
+    }
 
     TypedQuery<Long> query = entityManager.createQuery(jpql, Long.class);
 
     // 파라미터 바인딩
-    if (condition.getDepartment() != null) {
+    if (condition.getNameOrEmail() != null && !condition.getNameOrEmail().isEmpty()) {
+      query.setParameter("nameOrEmail", "%" + condition.getNameOrEmail() + "%");
+    }
+    if (condition.getDepartment() != null && !condition.getDepartment().isEmpty()) {
       query.setParameter("department", "%" + condition.getDepartment() + "%"); // 부서 필터 부분 일치
     }
-    if (condition.getPosition() != null) {
+    if (condition.getPosition() != null && !condition.getPosition().isEmpty()) {
       query.setParameter("position", "%" + condition.getPosition() + "%"); // 포지션 필터 부분 일치
     }
-    if (condition.getEmployeeNumber() != null) {
+    if (condition.getEmployeeNumber() != null && !condition.getEmployeeNumber().isEmpty()) {
       query.setParameter("employeeNumber", "%" + condition.getEmployeeNumber() + "%"); // 사원번호 필터 부분 일치
     }
     if (condition.getHireDateFrom() != null) {
@@ -191,6 +222,9 @@ public class EmployeeRepositoryImpl implements EmployeeRepositoryCustom {
     }
     if (condition.getHireDateTo() != null) {
       query.setParameter("hireDateTo", condition.getHireDateTo());
+    }
+    if (condition.getStatus() != null) {
+      query.setParameter("status", condition.getStatus());
     }
 
     // 총 직원 수 반환
