@@ -25,8 +25,30 @@ public interface DepartmentApi {
                     content = @Content(schema = @Schema(implementation = DepartmentDto.class))
             ),
             @ApiResponse(
-                    responseCode = "409", description = "같은 이름을 사용하는 부서가 이미 존재함",
-                    content = @Content(examples = @ExampleObject(value = "부서 이름이 이미 존재합니다: {name}"))
+                    responseCode = "400", description = "잘못된 요청 또는 중복된 이름",
+                    content = @Content(
+                            examples = @ExampleObject(
+                                    value = "{\n"
+                                            + "  \"timestamp\": \"2025-03-06T05:39:06.152068Z\",\n"
+                                            + "  \"status\": 400,\n"
+                                            + "  \"message\": \"잘못된 요청입니다.\",\n"
+                                            + "  \"details\": \"부서 코드는 필수입니다.\"\n"
+                                            + "}"
+                            )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500", description = "서버 오류",
+                    content = @Content(
+                            examples = @ExampleObject(
+                                    value = "{\n"
+                                            + "  \"timestamp\": \"2025-03-06T05:39:06.152068Z\",\n"
+                                            + "  \"status\": 400,\n"
+                                            + "  \"message\": \"잘못된 요청입니다.\",\n"
+                                            + "  \"details\": \"부서 코드는 필수입니다.\"\n"
+                                            + "}"
+                            )
+                    )
             )
     })
     ResponseEntity<DepartmentDto> createDepartment(
@@ -44,7 +66,29 @@ public interface DepartmentApi {
             ),
             @ApiResponse(
                     responseCode = "404", description = "부서를 찾을 수 없음",
-                    content = @Content(examples = @ExampleObject("존재하지 않는 부서입니다: {id}"))
+                    content = @Content(
+                            examples = @ExampleObject(
+                                    value = "{\n"
+                                            + "  \"timestamp\": \"2025-03-06T05:39:06.152068Z\",\n"
+                                            + "  \"status\": 400,\n"
+                                            + "  \"message\": \"잘못된 요청입니다.\",\n"
+                                            + "  \"details\": \"부서 코드는 필수입니다.\"\n"
+                                            + "}"
+                            )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500", description = "서버 오류",
+                    content = @Content(
+                            examples = @ExampleObject(
+                                    value = "{\n"
+                                            + "  \"timestamp\": \"2025-03-06T05:39:06.152068Z\",\n"
+                                            + "  \"status\": 400,\n"
+                                            + "  \"message\": \"잘못된 요청입니다.\",\n"
+                                            + "  \"details\": \"부서 코드는 필수입니다.\"\n"
+                                            + "}"
+                            )
+                    )
             )
     })
     ResponseEntity<DepartmentDto> getDepartment(
@@ -59,11 +103,42 @@ public interface DepartmentApi {
             ),
             @ApiResponse(
                     responseCode = "404", description = "부서를 찾을 수 없음",
-                    content = @Content(examples = @ExampleObject("존재하지 않는 부서입니다: {id}"))
+                    content = @Content(
+                            examples = @ExampleObject(
+                                    value = "{\n"
+                                            + "  \"timestamp\": \"2025-03-06T05:39:06.152068Z\",\n"
+                                            + "  \"status\": 400,\n"
+                                            + "  \"message\": \"잘못된 요청입니다.\",\n"
+                                            + "  \"details\": \"부서 코드는 필수입니다.\"\n"
+                                            + "}"
+                            )
+                    )
             ),
             @ApiResponse(
-                    responseCode = "409", description = "같은 이름을 사용하는 부서가 이미 존재함",
-                    content = @Content(examples = @ExampleObject("부서 이름이 이미 존재합니다: {name}"))
+                    responseCode = "400", description = "잘못된 요청 또는 중복된 이름",
+                    content = @Content(
+                            examples = @ExampleObject(
+                                    value = "{\n"
+                                            + "  \"timestamp\": \"2025-03-06T05:39:06.152068Z\",\n"
+                                            + "  \"status\": 400,\n"
+                                            + "  \"message\": \"잘못된 요청입니다.\",\n"
+                                            + "  \"details\": \"부서 코드는 필수입니다.\"\n"
+                                            + "}"
+                            )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500", description = "서버 오류",
+                    content = @Content(
+                            examples = @ExampleObject(
+                                    value = "{\n"
+                                            + "  \"timestamp\": \"2025-03-06T05:39:06.152068Z\",\n"
+                                            + "  \"status\": 400,\n"
+                                            + "  \"message\": \"잘못된 요청입니다.\",\n"
+                                            + "  \"details\": \"부서 코드는 필수입니다.\"\n"
+                                            + "}"
+                            )
+                    )
             )
     })
     ResponseEntity<DepartmentDto> updateDepartment(
@@ -78,11 +153,29 @@ public interface DepartmentApi {
             ),
             @ApiResponse(
                     responseCode = "404", description = "부서를 찾을 수 없음",
-                    content = @Content(examples = @ExampleObject(value = "존재하지 않는 부서입니다: {id}"))
+                    content = @Content(
+                            examples = @ExampleObject(
+                                    value = "{\n"
+                                            + "  \"timestamp\": \"2025-03-06T05:39:06.152068Z\",\n"
+                                            + "  \"status\": 400,\n"
+                                            + "  \"message\": \"잘못된 요청입니다.\",\n"
+                                            + "  \"details\": \"부서 코드는 필수입니다.\"\n"
+                                            + "}"
+                            )
+                    )
             ),
             @ApiResponse(
-                    responseCode = "400", description = "소속된 직원이 있는 부서는 삭제할 수 없음",
-                    content = @Content(examples = @ExampleObject(value = "소속된 직원이 있는 부서는 삭제할 수 없습니다"))
+                    responseCode = "500", description = "서버 오류",
+                    content = @Content(
+                            examples = @ExampleObject(
+                                    value = "{\n"
+                                            + "  \"timestamp\": \"2025-03-06T05:39:06.152068Z\",\n"
+                                            + "  \"status\": 400,\n"
+                                            + "  \"message\": \"잘못된 요청입니다.\",\n"
+                                            + "  \"details\": \"부서 코드는 필수입니다.\"\n"
+                                            + "}"
+                            )
+                    )
             )
     })
     ResponseEntity<Void> deleteDepartment(
@@ -94,6 +187,32 @@ public interface DepartmentApi {
             @ApiResponse(
                     responseCode = "200", description = "조회 성공",
                     content = @Content(schema = @Schema(implementation = CursorPageResponseDepartmentDto.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400", description = "잘못된 요청",
+                    content = @Content(
+                            examples = @ExampleObject(
+                                    value = "{\n"
+                                            + "  \"timestamp\": \"2025-03-06T05:39:06.152068Z\",\n"
+                                            + "  \"status\": 400,\n"
+                                            + "  \"message\": \"잘못된 요청입니다.\",\n"
+                                            + "  \"details\": \"부서 코드는 필수입니다.\"\n"
+                                            + "}"
+                            )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500", description = "서버 오류",
+                    content = @Content(
+                            examples = @ExampleObject(
+                                    value = "{\n"
+                                            + "  \"timestamp\": \"2025-03-06T05:39:06.152068Z\",\n"
+                                            + "  \"status\": 400,\n"
+                                            + "  \"message\": \"잘못된 요청입니다.\",\n"
+                                            + "  \"details\": \"부서 코드는 필수입니다.\"\n"
+                                            + "}"
+                            )
+                    )
             )
     })
     ResponseEntity<CursorPageResponseDepartmentDto> getDepartments(
