@@ -24,8 +24,30 @@ public interface EmployeeChangeLogControllerApi {
   @Operation(summary = "직원 변경 이력 목록 조회", description = "직원 변경 이력 목록을 검색합니다. 상세 변경 내용은 포함되지 않습니다.")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CursorPageResponseChangeLogDto.class))),
-      @ApiResponse(responseCode = "400", description = "잘못된 요청 또는 지원하지 않는 정렬 필드", content = @Content(examples = @ExampleObject(value = "{\"errorCode\": \"400\", \"message\": \"잘못된 요청입니다.\"}"))),
-      @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content(examples = @ExampleObject(value = "{\"errorCode\": \"500\", \"message\": \"서버 오류가 발생했습니다.\"}")))
+      @ApiResponse(responseCode = "400", description = "잘못된 요청",
+          content = @Content(examples = @ExampleObject(
+              value = """
+                  {
+                    "code": "INVALID_CURSOR",
+                    "status": 400,
+                    "message": "커서 값이 올바르지 않습니다.",
+                    "timestamp": "2025-04-28T10:00:00.000Z",
+                    "details": "/api/change-logs"
+                  }
+              """
+          ))),
+      @ApiResponse(responseCode = "500", description = "서버 오류",
+          content = @Content(examples = @ExampleObject(
+              value = """
+                  {
+                    "code": "INTERNAL_ERROR",
+                    "status": 500,
+                    "message": "서버 내부 오류가 발생했습니다.",
+                    "timestamp": "2025-04-28T10:00:00.000Z",
+                    "details": "/api/change-logs"
+                  }
+              """
+          )))
   })
   ResponseEntity<CursorPageResponseChangeLogDto> getChangeLogs(
       @Parameter(description = "검색 조건", content = @Content(schema = @Schema(implementation = EmployeeChangeLogSearchRequest.class)))
@@ -44,8 +66,30 @@ public interface EmployeeChangeLogControllerApi {
   @Operation(summary = "변경 이력 상세 조회", description = "특정 변경 이력 ID에 대한 상세 변경 내용을 조회합니다. 변경 상세 내용이 포함됩니다.")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = DiffDto.class))),
-      @ApiResponse(responseCode = "404", description = "이력을 찾을 수 없음", content = @Content(examples = @ExampleObject(value = "{\"errorCode\": \"404\", \"message\": \"이력을 찾을 수 없습니다.\"}"))),
-      @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content(examples = @ExampleObject(value = "{\"errorCode\": \"500\", \"message\": \"서버 오류가 발생했습니다.\"}")))
+      @ApiResponse(responseCode = "400", description = "이력을 찾을 수 없음",
+          content = @Content(examples = @ExampleObject(
+              value = """
+                  {
+                    "code": "CHANGE_LOG_NOT_FOUND",
+                    "status": 400,
+                    "message": "해당하는 변경 이력이 없습니다.",
+                    "timestamp": "2025-04-28T10:00:00.000Z",
+                    "details": "/api/change-logs/{id}/diffs"
+                  }
+              """
+          ))),
+      @ApiResponse(responseCode = "500", description = "서버 오류",
+          content = @Content(examples = @ExampleObject(
+              value = """
+                  {
+                    "code": "INTERNAL_ERROR",
+                    "status": 500,
+                    "message": "서버 내부 오류가 발생했습니다.",
+                    "timestamp": "2025-04-28T10:00:00.000Z",
+                    "details": "/api/change-logs/{id}/diffs"
+                  }
+              """
+          )))
   })
   ResponseEntity<List<DiffDto>> getChangeLogDiffs(
       @Parameter(description = "이력 ID") Long id
@@ -54,8 +98,30 @@ public interface EmployeeChangeLogControllerApi {
   @Operation(summary = "변경 이력 건수 조회", description = "직원 정보 수정 이력 건수를 조회합니다. 파라미터를 제공하지 않으면 최근 일주일 데이터를 반환합니다.")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = Long.class))),
-      @ApiResponse(responseCode = "400", description = "잘못된 요청 또는 유효하지 않은 날짜 범위", content = @Content(examples = @ExampleObject(value = "{\"errorCode\": \"400\", \"message\": \"잘못된 날짜입니다.\"}"))),
-      @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content(examples = @ExampleObject(value = "{\"errorCode\": \"500\", \"message\": \"서버 오류가 발생했습니다.\"}")))
+      @ApiResponse(responseCode = "400", description = "잘못된 요청 또는 유효하지 않은 날짜 범위",
+          content = @Content(examples = @ExampleObject(
+              value = """
+                  {
+                    "code": "INVALID_DATE_RANGE",
+                    "status": 400,
+                    "message": "시작일은 종료일보다 이후일 수 없습니다.",
+                    "timestamp": "2025-04-28T10:00:00.000Z",
+                    "details": "/api/change-logs/count"
+                  }
+              """
+          ))),
+      @ApiResponse(responseCode = "500", description = "서버 오류",
+          content = @Content(examples = @ExampleObject(
+              value = """
+                  {
+                    "code": "INTERNAL_ERROR",
+                    "status": 500,
+                    "message": "서버 내부 오류가 발생했습니다.",
+                    "timestamp": "2025-04-28T10:00:00.000Z",
+                    "details": "/api/change-logs/count"
+                  }
+              """
+          )))
   })
   ResponseEntity<Long> countChangeLogs(
       @Parameter(description = "시작 일시(기본값: 7일 전)")
