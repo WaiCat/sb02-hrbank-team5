@@ -19,6 +19,9 @@ spring:
         # default_batch_fetch_size: 100  # 필요시 주석 해제
     open-in-view: false
 
+server:
+  port: 21354
+
 logging:
   level:
     org.hibernate.SQL: debug
