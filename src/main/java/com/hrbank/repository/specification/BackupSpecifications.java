@@ -3,7 +3,7 @@ package com.hrbank.repository.specification;
 import com.hrbank.entity.Backup;
 import com.hrbank.enums.BackupStatus;
 import jakarta.persistence.criteria.Predicate;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import org.springframework.data.jpa.domain.Specification;
 
 public class BackupSpecifications {
@@ -11,8 +11,8 @@ public class BackupSpecifications {
   public static Specification<Backup> buildSearchSpecification(
       String worker,
       BackupStatus status,
-      LocalDateTime from,
-      LocalDateTime to,
+      OffsetDateTime from,
+      OffsetDateTime to,
       Long idAfter,
       String sortDirection
   ) {

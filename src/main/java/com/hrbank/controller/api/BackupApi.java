@@ -11,10 +11,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletRequest;
+import java.time.OffsetDateTime;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-
-import java.time.LocalDateTime;
 
 public interface BackupApi {
 
@@ -41,11 +40,11 @@ public interface BackupApi {
 
       @Parameter(description = "백업 시작 시간 이후", example = "2025-04-20T00:00:00")
       @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-      LocalDateTime startedAtFrom,
+      OffsetDateTime startedAtFrom,
 
       @Parameter(description = "백업 시작 시간 이전", example = "2025-04-22T23:59:59")
       @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-      LocalDateTime startedAtTo,
+      OffsetDateTime startedAtTo,
 
       @Parameter(description = "마지막으로 조회된 ID 이후의 데이터")
       Long idAfter,

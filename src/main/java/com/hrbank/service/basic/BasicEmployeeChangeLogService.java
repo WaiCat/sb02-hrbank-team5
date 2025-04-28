@@ -117,7 +117,7 @@ public class BasicEmployeeChangeLogService implements EmployeeChangeLogService {
 
   @Override
   @Transactional(readOnly = true)
-  public boolean hasChangeSince(LocalDateTime at) {
+  public boolean hasChangeSince(OffsetDateTime at) {
     return changeLogRepository.existsByAtAfter(at);
   }
 

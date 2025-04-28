@@ -4,7 +4,6 @@ import com.hrbank.dto.employeeChangeLog.CursorPageResponseChangeLogDto;
 import com.hrbank.dto.employeeChangeLog.DiffDto;
 import com.hrbank.dto.employeeChangeLog.EmployeeChangeLogSearchRequest;
 import com.hrbank.entity.Employee;
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.List;
 
@@ -14,7 +13,7 @@ public interface EmployeeChangeLogService {
   void saveChangeLog(Employee employeeBefore, Employee employeeAfter, String memo, String ip);
 
   //  특성 시점 이후 변경된 내용이 있는지 확인
-  boolean hasChangeSince(LocalDateTime at);
+  boolean hasChangeSince(OffsetDateTime at);
 
   // 이력 목록 조회
   CursorPageResponseChangeLogDto search(EmployeeChangeLogSearchRequest request, Long idAfter, String cursor, int size);

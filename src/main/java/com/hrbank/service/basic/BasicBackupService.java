@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.List;
@@ -56,7 +56,7 @@ public class BasicBackupService implements BackupService {
   @Transactional(readOnly = true)
   @Override
   public CursorPageResponseBackupDto searchBackups(
-      String worker, BackupStatus status, LocalDateTime from, LocalDateTime to,
+      String worker, BackupStatus status, OffsetDateTime from, OffsetDateTime to,
       Long idAfter, String cursor, Integer size, String sortField, String sortDirection) {
 
     int pageSize = size;
@@ -134,8 +134,8 @@ public class BasicBackupService implements BackupService {
       Backup skipped = Backup.builder()
           .worker(requesterIp)
           .status(BackupStatus.SKIPPED)
-          .startedAt(LocalDateTime.now())
-          .endedAt(LocalDateTime.now())
+          .startedAt(OffsetDateTime.now())
+          .endedAt(OffsetDateTime.now())
           .build();
       backupRepository.save(skipped);
       return backupMapper.toDto(skipped);
@@ -177,7 +177,7 @@ public class BasicBackupService implements BackupService {
       return true;
     }
 
-    LocalDateTime lastBackupTime = lastCompletedBackup.get().getEndedAt();
+    OffsetDateTime lastBackupTime = lastCompletedBackup.get().getEndedAt();
 
     // 특정 시간 이후 직원 업데이트 내역 확인
     return employeeChangeLogRepository.existsByAtAfter(lastBackupTime);
@@ -187,7 +187,7 @@ public class BasicBackupService implements BackupService {
     Backup backup = Backup.builder()
         .worker(requesterIp)
         .status(BackupStatus.IN_PROGRESS)
-        .startedAt(LocalDateTime.now())
+        .startedAt(OffsetDateTime.now())
         .build();
 
     Backup saved = backupRepository.save(backup);

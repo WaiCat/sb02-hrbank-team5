@@ -4,7 +4,6 @@ import com.hrbank.dto.employeeChangeLog.CursorPageResponseChangeLogDto;
 import com.hrbank.dto.employeeChangeLog.DiffDto;
 import com.hrbank.dto.employeeChangeLog.EmployeeChangeLogSearchRequest;
 import com.hrbank.service.EmployeeChangeLogService;
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +26,7 @@ public class EmployeeChangeLogController {
 
   @GetMapping("/exists")
   public ResponseEntity<Boolean> hasChangedSince(
-      @RequestParam("since") @DateTimeFormat(iso = ISO.DATE_TIME) LocalDateTime since) {
+      @RequestParam("since") @DateTimeFormat(iso = ISO.DATE_TIME) OffsetDateTime since) {
     // http://localhost:8080/api/change-logs/exists?since=2025-04-22T00:00:00
     // 특정 시점 이후 변경된 내용이 있으면 true, 없으면 false를 반환합니다.
     return ResponseEntity.ok(changeLogService.hasChangeSince(since));

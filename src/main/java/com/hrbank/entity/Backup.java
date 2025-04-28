@@ -12,7 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -34,10 +34,10 @@ public class Backup {
   private String worker;
 
   @Column(name = "started_at", nullable = false)
-  private LocalDateTime startedAt;
+  private OffsetDateTime startedAt;
 
   @Column(name = "ended_at")
-  private LocalDateTime endedAt;
+  private OffsetDateTime endedAt;
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
@@ -49,13 +49,13 @@ public class Backup {
 
   public void completeBackup(BinaryContent file) {
     this.status = BackupStatus.COMPLETED;
-    this.endedAt = LocalDateTime.now();
+    this.endedAt = OffsetDateTime.now();
     this.file = file;
   }
 
   public void failBackup(BinaryContent logFile) {
     this.status = BackupStatus.FAILED;
-    this.endedAt = LocalDateTime.now();
+    this.endedAt = OffsetDateTime.now();
     this.file = logFile;
   }
 
