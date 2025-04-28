@@ -10,6 +10,7 @@ import org.mapstruct.Mapping;
 public interface EmployeeMapper {
   @Mapping(source = "department.name", target = "departmentName")
   @Mapping(source = "profileImage.id", target = "profileImageId")
+  @Mapping(source = "department.id", target = "departmentId")
   EmployeeDto toDto(Employee employee);
   List<EmployeeDto> toDtoList(List<Employee> employees);
 }
