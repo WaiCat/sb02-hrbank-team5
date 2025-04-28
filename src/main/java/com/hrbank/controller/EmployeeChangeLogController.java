@@ -1,5 +1,6 @@
 package com.hrbank.controller;
 
+import com.hrbank.controller.api.EmployeeChangeLogControllerApi;
 import com.hrbank.dto.employeeChangeLog.CursorPageResponseChangeLogDto;
 import com.hrbank.dto.employeeChangeLog.DiffDto;
 import com.hrbank.dto.employeeChangeLog.EmployeeChangeLogSearchRequest;
@@ -20,18 +21,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/change-logs")
 @RequiredArgsConstructor
-public class EmployeeChangeLogController {
+public class EmployeeChangeLogController implements EmployeeChangeLogControllerApi {
 
   private final EmployeeChangeLogService changeLogService;
-
-  @GetMapping("/exists")
-  public ResponseEntity<Boolean> hasChangedSince(
-      @RequestParam("since") @DateTimeFormat(iso = ISO.DATE_TIME) OffsetDateTime since) {
-    // http://localhost:8080/api/change-logs/exists?since=2025-04-22T00:00:00
-    // 특정 시점 이후 변경된 내용이 있으면 true, 없으면 false를 반환합니다.
-    return ResponseEntity.ok(changeLogService.hasChangeSince(since));
-  }
-
 
   @GetMapping
   public ResponseEntity<CursorPageResponseChangeLogDto> getChangeLogs(

@@ -117,12 +117,6 @@ public class BasicEmployeeChangeLogService implements EmployeeChangeLogService {
 
   @Override
   @Transactional(readOnly = true)
-  public boolean hasChangeSince(OffsetDateTime at) {
-    return changeLogRepository.existsByAtAfter(at);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public CursorPageResponseChangeLogDto search(EmployeeChangeLogSearchRequest request, Long idAfter, String cursor, int size) {
     Long resolvedIdAfter = idAfter;
     // cursor가 있으면 우선적으로 사용
