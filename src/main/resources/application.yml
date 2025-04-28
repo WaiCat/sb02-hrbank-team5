@@ -7,16 +7,15 @@ spring:
       maxRequestSize: 30MB      # 한 번에 최대 업로드 가능 용량
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: jdbc:postgresql://trolley.proxy.rlwy.net:21354/railway
+    username: postgres
+    password: AFnnTDSSXnsxhSgqSHOSeQmipWxmVXfx
   jpa:
     hibernate:
       ddl-auto: validate        # 운영은 validate, 개발 초기에는 update/create 사용 가능
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.PostgreSQLDialect
         # default_batch_fetch_size: 100  # 필요시 주석 해제
     open-in-view: false
 
