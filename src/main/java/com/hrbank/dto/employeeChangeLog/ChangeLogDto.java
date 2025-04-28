@@ -1,7 +1,7 @@
 package com.hrbank.dto.employeeChangeLog;
 
 import com.hrbank.enums.EmployeeChangeLogType;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 // 상세 조회용 dto
@@ -11,6 +11,6 @@ public record ChangeLogDto(
     String employeeNumber,
     String memo,
     String ipAddress,
-    LocalDateTime at,
+    OffsetDateTime at,
     List<DiffDto> details
 ) {}

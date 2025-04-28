@@ -69,7 +69,7 @@ public class BasicEmployeeChangeLogService implements EmployeeChangeLogService {
         employeeNumber,
         memo,
         ipAddress,
-        LocalDateTime.now()
+        OffsetDateTime.now()
     );
     // 모든 type의 detail 생성
     if(type == EmployeeChangeLogType.CREATED) {
@@ -120,7 +120,6 @@ public class BasicEmployeeChangeLogService implements EmployeeChangeLogService {
   public boolean hasChangeSince(LocalDateTime at) {
     return changeLogRepository.existsByAtAfter(at);
   }
-
 
   @Override
   @Transactional(readOnly = true)
